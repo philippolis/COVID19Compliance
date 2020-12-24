@@ -189,9 +189,21 @@ ggplot(data) +
 # Modelling ----
 
 ## Non-hierarchical model ----
-lm(data = data, MobilityIndex ~ StringencyIndex + CountryName + Date)
+lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
 
-summary(lm(data = data, MobilityIndex ~ StringencyIndex + CountryName + Date))
+summary(lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days))
+
+### Creating nice regression table output
+lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
+
+#### Modify htmlreg arguments in order to improve table output
+table <- texreg::htmlreg(lm1, custom.note="%stars. htmlreg")
+
+tempDir <- tempfile()
+dir.create(tempDir)
+htmlFile <- file.path(tempDir, "test.html")
+writeLines(table, htmlFile)
+rstudioapi::viewer(htmlFile)
 
 ### Visualising different predicted intercepts and different slopes
 ggplot(data = augment(lm(data = data, 

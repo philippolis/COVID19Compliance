@@ -2,7 +2,7 @@
 title: "COVID-19 Policy-Compliance in Europe"
 author: "Philipp Holz"
 date: 'December 24, 2020'
-output: 
+output:
   github_document:
     toc: true
     keep_html: true
@@ -20,6 +20,8 @@ library(broom.mixed)
 library(plotly)
 library(reshape2)
 library(utils)
+library(texreg)
+library(stargazer)
 ```
 
 
@@ -244,6 +246,27 @@ ggplot(data) +
 The following non-hierarchical model predicts the Mobility Index as the dependent variable, with the Stringency Index, Date and Country as the independent variables.
 
 `Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε`
+
+
+```{r echo=FALSE, results="asis"}
+
+report_regression <- function(model, ...){
+  if(knitr::is_html_output()){
+    require(texreg)
+    htmlreg(model, custom.note="%stars. htmlreg", ...)
+  } else if(knitr::is_latex_output()){
+    require(stargazer)
+    stargazer(model, notes="stargazer html", ...)
+  } else {
+   print("This only works with latex and html output") 
+  }
+}
+
+lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
+
+report_regression(lm1)
+```
+
 
 THE FOLLOWING MUST BE UPDATED
 
