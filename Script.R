@@ -132,20 +132,17 @@ data = policy_data_Europe_small %>%
 
 ## Adding a column with Compliance-index ----
 
-policyMobility_data_Europe$ComplianceIndex <- 100 - (policyMobility_data_Europe$StringencyIndex + policyMobility_data_Europe$MobilityIndex)
+data$ComplianceIndex <- 100 - (data$StringencyIndex + data$MobilityIndex)
 
 ### Rescaling the Compliance-index to assume values between 0 and 100
 
-policyMobility_data_Europe$ComplianceIndex <- rescale(policyMobility_data_Europe$ComplianceIndex, to = c(0, 100))
+data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
 
 
 # Explorative Data Visualization ----
-## Create a Boxplot of Mobility by Country ----
-ggplot(data = policyMobility_data_Europe, aes(x = CountryName, y = MobilityIndex)) +
-  geom_boxplot()
 
 ## Create a Boxplot of Compliance by Country ----
-ggplot(data = policyMobility_data_Europe, aes(x = CountryName, y = ComplianceIndex)) +
+ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   geom_boxplot() +
   xlab("Country") +
   ylab("Policy Compliance Index") +
@@ -154,7 +151,7 @@ ggplot(data = policyMobility_data_Europe, aes(x = CountryName, y = ComplianceInd
 
 ## Create a faceted plot with Stringency and Mobility for European Countries ----
 
-ggplot(data = policyMobility_data_Europe) +
+ggplot(data = data) +
   geom_line(aes(x = Date, y = StringencyIndex), color = "black", linetype = "longdash", size = 0.5) +
   geom_smooth(aes(x = Date, y = -1*MobilityIndex), method = "loess", span = 1/10, 
               se = FALSE, size = 0.5, color = "black", linetype = "solid") +
@@ -173,7 +170,7 @@ ggplot(data = policyMobility_data_Europe) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
 
 ## Create a faceted plot with Compliance for European Countries ----
-ggplot(policyMobility_data_Europe) +
+ggplot(data) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "loess", se = FALSE, span = 1/10, 
               color = "black", linetype = "solid", size = 0.1) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "lm", se = FALSE, 
@@ -192,17 +189,17 @@ ggplot(policyMobility_data_Europe) +
 # Modelling ----
 
 ## Non-hierarchical model ----
-lm(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + CountryName + Date)
+lm(data = data, MobilityIndex ~ StringencyIndex + CountryName + Date)
 
-summary(lm(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + CountryName + Date))
+summary(lm(data = data, MobilityIndex ~ StringencyIndex + CountryName + Date))
 
 ### Visualising different predicted intercepts and different slopes
-ggplot(data = augment(lm(data = policyMobility_data_Europe, 
+ggplot(data = augment(lm(data = data, 
                          MobilityIndex ~ Date + CountryName + StringencyIndex)),
        aes(x = Date, y = MobilityIndex, color = CountryName))  +
   geom_smooth(aes(y = .fitted), method = "lm", se = FALSE)
 
-ggplot(data = augment(lm(data = policyMobility_data_Europe, 
+ggplot(data = augment(lm(data = data, 
                          MobilityIndex ~ Date + CountryName + StringencyIndex)))  +
   geom_line(aes(x = Date, y = .fitted, color = CountryName))
 
@@ -211,12 +208,12 @@ ggplot(data = augment(lm(data = policyMobility_data_Europe,
 
 #### Fit model
 
-model_out <- lm(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date)
+model_out <- lm(data = data, MobilityIndex ~ StringencyIndex + Date)
 
 #### predict over sensible grid of values
-unique_stringency <- unique(policyMobility_data_Europe$StringencyIndex)
-unique_date <- unique(policyMobility_data_Europe$Date)
-grid <- with(policyMobility_data_Europe, expand.grid(unique_stringency, unique_date))
+unique_stringency <- unique(data$StringencyIndex)
+unique_date <- unique(data$Date)
+grid <- with(data, expand.grid(unique_stringency, unique_date))
 d <- setNames(data.frame(grid), c("StringencyIndex", "Date"))
 vals <- predict(model_out, newdata = d)
 
@@ -225,7 +222,7 @@ model_out <- matrix(vals, nrow = length(unique(d$StringencyIndex)), ncol = lengt
 
 model_out_plot <- plot_ly() %>% 
   add_surface(x = ~unique_date, y = ~unique_stringency, z = ~model_out, colorscale = list(c(0, 1), c("green", "yellow"))) %>% 
-  add_markers(data = policyMobility_data_Europe, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6, size = 0.1) %>%
+  add_markers(data = data, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6, size = 0.1) %>%
   layout(scene = list(xaxis = list(title = 'Date'),
                       yaxis = list(title = 'Stringency Index'),
                       zaxis = list(title = 'Mobility Index')))
@@ -235,41 +232,41 @@ hide_colorbar(model_out_plot)
 #### Visualising the linear model in 3D ----
 
 ##### Scatterplot for Europe
-plot_ly(data = policyMobility_data_Europe, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6) %>%
+plot_ly(data = data, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6) %>%
   add_markers(size=0.1)
 
 ##### Scatterplot for Austria
-plot_ly(data = subset(policyMobility_data_Europe, CountryName == "Austria"), z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, opacity = 0.6) %>%
+plot_ly(data = subset(data, CountryName == "Austria"), z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, opacity = 0.6) %>%
   add_markers(size=0.1)
 
 ##### Line plot for Europe
-plot_ly(policyMobility_data_Europe, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~CountryName, type = 'scatter3d', mode = 'lines',
+plot_ly(data, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~CountryName, type = 'scatter3d', mode = 'lines',
                opacity = 0.6, line = list(width = 3, reverscale = FALSE))
 
 ## How does the mobility change over time in Europe? - I do understand this model ----
-lmer_out <- lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName))
+lmer_out <- lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName))
 
 ### Looking at the results
-summary(lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
+summary(lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
 
 ### extract out the fixed effect for date
-fixef(lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
+fixef(lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
 
 ### extract out the random effect for country
-ranef(lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
+ranef(lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
 
 ## How does the Compliance change over time in Europe? This model has not enough independent variables ----
 
-lmer_out <- lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName))
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName))
 
 ### Looking at the results
-summary(lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName)))
+summary(lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName)))
 
 ### extract out the fixed effect for date
-fixef(lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName)))
+fixef(lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName)))
 
 ### extract out the random effect for country
-ranef(lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName)))
+ranef(lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName)))
 
 
 # Communicating the Results ----

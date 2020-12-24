@@ -1,7 +1,7 @@
 ---
-title: "Assignment 3 - Draft"
+title: "COVID-19 Policy-Compliance in Europe"
 author: "Philipp Holz"
-date: 'December 12, 2020'
+date: 'December 24, 2020'
 output: 
   github_document:
     toc: true
@@ -16,15 +16,18 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(lme4)
+library(broom.mixed)
+library(plotly)
+library(reshape2)
+library(utils)
 ```
 
 
 ```{r data, eval=TRUE, include=FALSE}
-
 # Data Wrangling -----
 ## Adding the Policy Data -----
 ### Read in the Data
-policy_data <- read.csv("C:/Users/holzp/Desktop/RProject/PolicyData.csv")
+policy_data <- read.csv("PolicyData.csv")
 
 ### convert Date column to date format
 policy_data$Date = as.Date(as.character(policy_data$Date), format = "%Y%m%d")
@@ -46,10 +49,13 @@ policy_data_Europe <- policy_data_countries %>% filter(CountryCode == "DEU" |
                                                          CountryCode == "IRL" |
                                                          CountryCode == "DNK")
 
+### Only selecting the columns that are interesting
+policy_data_Europe_small <- policy_data_Europe %>% select(Date, CountryName, StringencyIndex)
+
 
 ## Adding the Mobility Data ----
 ### Reading in the data
-mobility_data <- read.csv("C:/Users/holzp/Desktop/RProject/MobilityData.csv")
+mobility_data <- read.csv("MobilityData.csv")
 
 ### Add a column with an average of the change in sectors, excluding residential and parks
 
@@ -75,28 +81,79 @@ mobility_data_Europe <- mobility_data_countries %>% filter(country == "Germany" 
                                                              country == "Denmark" |
                                                              country == "Ireland")
 
-## Merging the Data into policyMobility_data_Europe ----
 ### renaming the date columns to match
 names(mobility_data_Europe)[names(mobility_data_Europe)=="date"] <- "Date"
 names(mobility_data_Europe)[names(mobility_data_Europe)=="country"] <- "CountryName"
 names(mobility_data_Europe)[names(mobility_data_Europe)=="avg_change"] <- "MobilityIndex"
 
-### Only selecting the columns that are interesting
+### Only selecting relevant data
 mobility_data_Europe_small <- mobility_data_Europe %>% select(Date, CountryName, MobilityIndex)
-policy_data_Europe_small <- policy_data_Europe %>% select(Date, CountryName, StringencyIndex)
 
-### Merging policy and mobility data on date
-policyMobility_data_Europe = mobility_data_Europe_small %>% 
-  inner_join(policy_data_Europe_small, by = c("Date", "CountryName"))
 
+## Adding the Cases Data ----
+
+###read the Dataset sheet in
+cases_data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+
+### renaming the date and countries columns to match
+names(cases_data)[names(cases_data)=="dateRep"] <- "Date"
+names(cases_data)[names(cases_data)=="countriesAndTerritories"] <- "CountryName"
+
+### Forcing Date format
+cases_data$Date = as.Date(as.character(cases_data$Date), format = "%d/%m/%Y")
+
+### create dataframe with only national level of Germany, France, UK, Spain, Italy
+cases_data_Europe <- cases_data %>% filter(CountryName == "Germany" |
+                                             CountryName == "Italy" |
+                                             CountryName == "France" |
+                                             CountryName == "Spain" |
+                                             CountryName == "United_Kingdom" |
+                                             CountryName == "Netherlands" |
+                                             CountryName == "Belgium" |
+                                             CountryName == "Poland" |
+                                             CountryName == "Sweden" |
+                                             CountryName == "Ireland" |
+                                             CountryName == "Austria" |
+                                             CountryName == "Denmark")
+
+### Changing United_Kingdom to United Kingdom
+rename <- c(United_Kingdom="United Kingdom", Germany="Germany", Italy="Italy",
+            France="France", Spain="Spain", Netherlands="Netherlands", Belgium="Belgium",
+            Poland="Poland", Sweden="Sweden", Ireland="Ireland", Austria="Austria",
+            Denmark="Denmark")
+
+cases_data_Europe$CountryName <- as.character(rename[cases_data_Europe$CountryName])
+
+### Only selecting the columns that are interesting
+cases_data_Europe_small <- cases_data_Europe %>% select(Date, CountryName, notification_rate_per_100000_population_14.days)
+
+## Adding the Trends Data ----
+trends_data <- read.csv("GoogleTrends.csv", sep = ";")
+
+### Forcing correct date format
+trends_data$Date = as.Date(trends_data$Date, format = "%d.%m.%Y")+1
+
+## Renaming the Sum column to Publicity
+names(trends_data)[names(trends_data)=="Sum"] <- "Publicity"
+
+## Only selecting the columns that are interesting
+trends_data <- trends_data %>% select(Date, CountryName, Publicity)
+
+## Merging policy mobility trends and cases data on date and country ----
+
+data = policy_data_Europe_small %>% 
+  full_join(mobility_data_Europe_small, by = c("Date", "CountryName")) %>%
+  full_join(cases_data_Europe_small, by = c("Date", "CountryName")) %>%
+  full_join(trends_data, by = c("Date", "CountryName"))
 
 ## Adding a column with Compliance-index ----
 
-policyMobility_data_Europe$ComplianceIndex <- 100 - (policyMobility_data_Europe$StringencyIndex + policyMobility_data_Europe$MobilityIndex)
+data$ComplianceIndex <- 100 - (data$StringencyIndex + data$MobilityIndex)
 
 ### Rescaling the Compliance-index to assume values between 0 and 100
 
-policyMobility_data_Europe$ComplianceIndex <- rescale(policyMobility_data_Europe$ComplianceIndex, to = c(0, 100))
+data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
+
 
 ```
 
@@ -119,7 +176,7 @@ The following diagram shows how in March, April and May lock style policies were
 ```{r faceted plot Stringency and Mobility, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
 ## Create a faceted plot with Stringency and Mobility for European Countries ----
 
-ggplot(data = policyMobility_data_Europe) +
+ggplot(data = data) +
   geom_line(aes(x = Date, y = StringencyIndex), color = "black", linetype = "longdash", size = 0.5) +
   geom_smooth(aes(x = Date, y = -1*MobilityIndex), method = "loess", span = 1/10, 
               se = FALSE, size = 0.5, color = "black", linetype = "solid") +
@@ -136,6 +193,7 @@ ggplot(data = policyMobility_data_Europe) +
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
+
 ```
 
 
@@ -143,11 +201,15 @@ ggplot(data = policyMobility_data_Europe) +
 
 In order to build our model, we can make a preliminary, bivariate analysis that shows the variance of policy compliance across different European countries. 
 
-For this step, we can approximate policy-compliance as the difference between the level of policy-stringency and the observed reduction in mobility. The boxplot shows us that, indeed, the levels of policy compliance among European countries differ.
+For this analysis, policy-compliance is approximated as the difference between the level of policy-stringency and the observed reduction in mobility. 
+
+`Compliance = 100 - (Policy Stringency Index - %-change in Mobility)`
+
+The boxplot shows us that, indeed, the levels of policy compliance among European countries differ.
 
 ```{r boxplot compliance, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
 ## Create a Boxplot of Compliance by Country ----
-ggplot(data = policyMobility_data_Europe, aes(x = CountryName, y = ComplianceIndex)) +
+ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   geom_boxplot() +
   xlab("Country") +
   ylab("Policy Compliance Index") +
@@ -159,7 +221,7 @@ Additionally, as we want to assess the change of policy compliance across time i
 
 ```{r facetted plot compliance, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
 ## Create a faceted plot with Compliance for European Countries ----
-ggplot(policyMobility_data_Europe) +
+ggplot(data) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "loess", se = FALSE, span = 1/10, 
               color = "black", linetype = "solid", size = 0.1) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "lm", se = FALSE, 
@@ -176,16 +238,14 @@ ggplot(policyMobility_data_Europe) +
   ggtitle("Policy Compliance in Europe Across Time")
 ```
 
-However, as initially stated, approximating policy-compliance as the difference between the level of policy-stringency and the observed reduction in mobility cannot be more than an approximation. When plotted across countries it shows a difference in means, and when plotted across time it shows a difference in trend.
-
-An alternative measure of policy-compliance comes to mind, that accounts for measurement-errors and country-level differences. This alternative measure would be informed by the degree to which the mobility-reduction of a given population over time can be predicted by policy-stringency. As will be shown in more detail below, such a model is a hierarchical random-effect model.
-
 # Modelling
 ## Linear Non-Hierachical Model
 
 The following non-hierarchical model predicts the Mobility Index as the dependent variable, with the Stringency Index, Date and Country as the independent variables.
 
-Predicted Mobility Index = β₀ + β₁ × Stringency Index + β₂ × Date + β₃ × Country + ε
+`Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε`
+
+THE FOLLOWING MUST BE UPDATED
 
 It yields the following result. The continuous variables Stringency Index and Date are both statistically significant at the 0.05 level. They show that with increased stringency the mobility decreases, while a later date is associated with an increased mobility. Also all expressions of the categorical variable Country are significant at the 0.05 level, with the exception of the United Kingdom. 
 
