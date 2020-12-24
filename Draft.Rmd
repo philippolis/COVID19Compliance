@@ -2,10 +2,7 @@
 title: "COVID-19 Policy-Compliance in Europe"
 author: "Philipp Holz"
 date: 'December 24, 2020'
-output:
-  github_document:
-    toc: true
-    keep_html: true
+output: pdf_document
 bibliography: References.json
 
 ---
@@ -165,9 +162,9 @@ The COVID-19-Pandemic is an ongoing challenge for policy-makers. Especially, bec
 
 To find an answer to these questions, the following analysis will assess the following hypothesis.
 
-H₀: There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
+H(null): There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
 
-Hₐ: There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
+H(alternative): There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
 
 This analysis combines data from the Google COVID-19 Community Mobility Reports [@COVID19CommunityMobility2020] and data from the the Oxford Policy Tracker [@haleOxfordCOVID19Government2020]. The Google Mobility Report charts "movement trends over time by geography, across different categories."[@COVID19CommunityMobility2020] For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on "the strictness of 'lockdown style' policies that primarily restrict people's behaviour."[@haleOxfordCOVID19Government2020]
 
@@ -245,8 +242,6 @@ ggplot(data) +
 
 The following non-hierarchical model predicts the Mobility Index as the dependent variable, with the Stringency Index, Date and Country as the independent variables.
 
-`Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε`
-
 It yields the following result. The continuous variables Stringency Index and Date are both statistically significant at the 0.05 level. They show that with increased stringency the mobility decreases, while a later date is associated with an increased mobility. Also all expressions of the categorical variable Country are significant at the 0.05 level, with the exception of the United Kingdom. 
 
 ```{r Regression Table, echo=FALSE, results="asis", fig.align='center'}
@@ -255,7 +250,7 @@ It yields the following result. The continuous variables Stringency Index and Da
 lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
 
 # Generate regression table
-texreg::htmlreg(lm1, single.row = TRUE, 
+texreg::texreg(lm1, single.row = TRUE, 
 #                         custom.header = list("Model Results" = 1),
 #                         model.names = c("My name 1", "My name 2"), 
                          custom.coef.names = c("Intercept", "Date", "Publicity",
