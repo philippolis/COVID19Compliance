@@ -111,11 +111,24 @@ cases_data_Europe$CountryName <- as.character(rename[cases_data_Europe$CountryNa
 ### Only selecting the columns that are interesting
 cases_data_Europe_small <- cases_data_Europe %>% select(Date, CountryName, notification_rate_per_100000_population_14.days)
 
+## Adding the Trends Data ----
+trends_data <- read.csv("GoogleTrends.csv", sep = ";")
+
+### Forcing correct date format
+trends_data$Date = as.Date(trends_data$Date, format = "%d.%m.%Y")+1
+
+## Renaming the Sum column to Publicity
+names(trends_data)[names(trends_data)=="Sum"] <- "Publicity"
+
+## Only selecting the columns that are interesting
+trends_data <- trends_data %>% select(Date, CountryName, Publicity)
+
 ## Merging policy mobility trends and cases data on date and country ----
 
 data = policy_data_Europe_small %>% 
   full_join(mobility_data_Europe_small, by = c("Date", "CountryName")) %>%
-  full_join(cases_data_Europe_small, by = c("Date", "CountryName"))
+  full_join(cases_data_Europe_small, by = c("Date", "CountryName")) %>%
+  full_join(trends_data, by = c("Date", "CountryName"))
 
 ## Adding a column with Compliance-index ----
 
