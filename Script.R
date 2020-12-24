@@ -6,6 +6,7 @@ library(lme4)
 library(broom.mixed)
 library(plotly)
 library(reshape2)
+library(utils)
 
 # Data Wrangling -----
 ## Adding the Policy Data -----
@@ -31,6 +32,9 @@ policy_data_Europe <- policy_data_countries %>% filter(CountryCode == "DEU" |
                                                          CountryCode == "AUT" |
                                                          CountryCode == "IRL" |
                                                          CountryCode == "DNK")
+
+### Only selecting the columns that are interesting
+policy_data_Europe_small <- policy_data_Europe %>% select(Date, CountryName, StringencyIndex)
 
 
 ## Adding the Mobility Data ----
@@ -61,20 +65,55 @@ mobility_data_Europe <- mobility_data_countries %>% filter(country == "Germany" 
                                                              country == "Denmark" |
                                                              country == "Ireland")
 
-## Merging the Data into policyMobility_data_Europe ----
 ### renaming the date columns to match
 names(mobility_data_Europe)[names(mobility_data_Europe)=="date"] <- "Date"
 names(mobility_data_Europe)[names(mobility_data_Europe)=="country"] <- "CountryName"
 names(mobility_data_Europe)[names(mobility_data_Europe)=="avg_change"] <- "MobilityIndex"
 
-### Only selecting the columns that are interesting
+### Only selecting relevant data
 mobility_data_Europe_small <- mobility_data_Europe %>% select(Date, CountryName, MobilityIndex)
-policy_data_Europe_small <- policy_data_Europe %>% select(Date, CountryName, StringencyIndex)
 
-### Merging policy and mobility data on date
-policyMobility_data_Europe = mobility_data_Europe_small %>% 
-  inner_join(policy_data_Europe_small, by = c("Date", "CountryName"))
 
+## Adding the Cases Data ----
+
+###read the Dataset sheet in
+cases_data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")
+cases_data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+
+### renaming the date and countries columns to match
+names(cases_data)[names(cases_data)=="dateRep"] <- "Date"
+names(cases_data)[names(cases_data)=="countriesAndTerritories"] <- "CountryName"
+
+### Forcing Date format
+cases_data$Date = as.Date(as.character(cases_data$Date), format = "%d/%m/%Y")
+
+### create dataframe with only national level of Germany, France, UK, Spain, Italy
+cases_data_Europe <- cases_data %>% filter(CountryName == "Germany" |
+                                             CountryName == "Italy" |
+                                             CountryName == "France" |
+                                             CountryName == "Spain" |
+                                             CountryName == "United_Kingdom" |
+                                             CountryName == "Netherlands" |
+                                             CountryName == "Belgium" |
+                                             CountryName == "Poland" |
+                                             CountryName == "Sweden" |
+                                             CountryName == "Ireland" |
+                                             CountryName == "Austria" |
+                                             CountryName == "Denmark")
+
+### Changing United_Kingdom to United Kingdom
+rename <- c(United_Kingdom="United Kingdom")
+
+cases_data_Europe$CountryName <- as.character(rename[cases_data_Europe$CountryName])
+
+### Only selecting the columns that are interesting
+cases_data_Europe_small <- cases_data_Europe %>% select(Date, CountryName, notification_rate_per_100000_population_14.days)
+
+## Merging policy mobility trends and cases data on date and country
+
+data = policy_data_Europe_small %>% 
+  full_join(mobility_data_Europe_small, by = c("Date", "CountryName")) %>%
+  full_join(cases_data_Europe_small, by = c("Date", "CountryName"))
 
 ## Adding a column with Compliance-index ----
 
