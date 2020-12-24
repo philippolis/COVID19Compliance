@@ -77,7 +77,6 @@ mobility_data_Europe_small <- mobility_data_Europe %>% select(Date, CountryName,
 ## Adding the Cases Data ----
 
 ###read the Dataset sheet in
-cases_data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv", na.strings = "", fileEncoding = "UTF-8-BOM")
 cases_data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
 
 ### renaming the date and countries columns to match
@@ -102,14 +101,17 @@ cases_data_Europe <- cases_data %>% filter(CountryName == "Germany" |
                                              CountryName == "Denmark")
 
 ### Changing United_Kingdom to United Kingdom
-rename <- c(United_Kingdom="United Kingdom")
+rename <- c(United_Kingdom="United Kingdom", Germany="Germany", Italy="Italy",
+            France="France", Spain="Spain", Netherlands="Netherlands", Belgium="Belgium",
+            Poland="Poland", Sweden="Sweden", Ireland="Ireland", Austria="Austria",
+            Denmark="Denmark")
 
 cases_data_Europe$CountryName <- as.character(rename[cases_data_Europe$CountryName])
 
 ### Only selecting the columns that are interesting
 cases_data_Europe_small <- cases_data_Europe %>% select(Date, CountryName, notification_rate_per_100000_population_14.days)
 
-## Merging policy mobility trends and cases data on date and country
+## Merging policy mobility trends and cases data on date and country ----
 
 data = policy_data_Europe_small %>% 
   full_join(mobility_data_Europe_small, by = c("Date", "CountryName")) %>%
