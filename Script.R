@@ -197,7 +197,27 @@ summary(lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification
 lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
 
 #### Modify htmlreg arguments in order to improve table output
-table <- texreg::htmlreg(lm1, custom.note="%stars. htmlreg")
+#### Then insert the texreg statement in Rmd
+table <- texreg::htmlreg(lm1, single.row = TRUE, 
+#                         custom.header = list("Model Results" = 1),
+#                         model.names = c("My name 1", "My name 2"), 
+                         custom.coef.names = c("Intercept", "Date", "Publicity",
+                                               "Cases/100,000/14 Days",
+                                               "Belgium",
+                                               "Denmark",
+                                               "France",
+                                               "Germany",
+                                               "Ireland",
+                                               "Italy",
+                                               "Netherlands",
+                                               "Poland",
+                                               "Spain",
+                                               "Sweden",
+                                               "United Kingdom"),
+                          bold = 0.05,
+                          center = TRUE,
+                          caption = "Regression Table"
+                         )
 
 tempDir <- tempfile()
 dir.create(tempDir)

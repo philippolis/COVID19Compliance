@@ -247,33 +247,41 @@ The following non-hierarchical model predicts the Mobility Index as the dependen
 
 `Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε`
 
+It yields the following result. The continuous variables Stringency Index and Date are both statistically significant at the 0.05 level. They show that with increased stringency the mobility decreases, while a later date is associated with an increased mobility. Also all expressions of the categorical variable Country are significant at the 0.05 level, with the exception of the United Kingdom. 
 
-```{r echo=FALSE, results="asis"}
+```{r Regression Table, echo=FALSE, results="asis", fig.align='center'}
 
-report_regression <- function(model, ...){
-  if(knitr::is_html_output()){
-    require(texreg)
-    htmlreg(model, custom.note="%stars. htmlreg", ...)
-  } else if(knitr::is_latex_output()){
-    require(stargazer)
-    stargazer(model, notes="stargazer html", ...)
-  } else {
-   print("This only works with latex and html output") 
-  }
-}
-
+# Fit the model
 lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
 
-report_regression(lm1)
+# Generate regression table
+texreg::htmlreg(lm1, single.row = TRUE, 
+#                         custom.header = list("Model Results" = 1),
+#                         model.names = c("My name 1", "My name 2"), 
+                         custom.coef.names = c("Intercept", "Date", "Publicity",
+                                               "Cases/100,000/14 Days",
+                                               "Belgium",
+                                               "Denmark",
+                                               "France",
+                                               "Germany",
+                                               "Ireland",
+                                               "Italy",
+                                               "Netherlands",
+                                               "Poland",
+                                               "Spain",
+                                               "Sweden",
+                                               "United Kingdom"),
+                          bold = 0.05,
+                          center = TRUE,
+                          caption = "Regression Table"
+                         )
 ```
 
 
-THE FOLLOWING MUST BE UPDATED
-
-It yields the following result. The continuous variables Stringency Index and Date are both statistically significant at the 0.05 level. They show that with increased stringency the mobility decreases, while a later date is associated with an increased mobility. Also all expressions of the categorical variable Country are significant at the 0.05 level, with the exception of the United Kingdom. 
-
 The United Kingdom being a non-significant exception in the non-hierarchical linear model is an interesting case, as we could observe from our previous diagram with the compliance-approximation that, on a country-level with a random intercept and a random slope, the linear regression line fitted the United Kingdom data exceptionally *well*. Thus, we require 
 
+
+THIS TABLE WILL BE UPDATED BEFORE FINAL SUBMISSION
 
 | Variable                  | Coefficient | Std. Error | p-value      |
 | ------------------------- | ----------- | ---------- | ------------ |

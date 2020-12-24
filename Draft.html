@@ -635,11 +635,12 @@ body {
 <h2 id="linear-non-hierachical-model">Linear Non-Hierachical Model</h2>
 <p>The following non-hierarchical model predicts the Mobility Index as the dependent variable, with the Stringency Index, Date and Country as the independent variables.</p>
 <p><code>Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε</code></p>
+<p>It yields the following result. The continuous variables Stringency Index and Date are both statistically significant at the 0.05 level. They show that with increased stringency the mobility decreases, while a later date is associated with an increased mobility. Also all expressions of the categorical variable Country are significant at the 0.05 level, with the exception of the United Kingdom.</p>
 <table class="texreg" style="margin: 10px auto;border-collapse: collapse;border-spacing: 0px;caption-side: bottom;color: #000000;border-top: 2px solid #000000;">
 
 <caption>
 
-<p>Statistical models</p>
+<p>Regression Table</p>
 </caption>
 
 <thead>
@@ -666,26 +667,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(Intercept)</p>
+<p>Intercept</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>1380.70<sup>***</sup></p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p> </p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>(115.51)</p>
+<p><b>1380.70</b> (115.51)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -699,21 +686,7 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>-0.07<sup>***</sup></p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p> </p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>(0.01)</p>
+<p><b>-0.07</b> (0.01)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -727,7 +700,7 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>-0.01</p>
+<p>-0.01 (0.02)</p>
 </td>
 
 </tr>
@@ -736,26 +709,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Cases/100,000/14 Days</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(0.02)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>notification_rate_per_100000_population_14.days</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>0.00</p>
+<p>0.00 (0.00)</p>
 </td>
 
 </tr>
@@ -764,26 +723,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Belgium</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(0.00)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameBelgium</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-3.21</p>
+<p>-3.21 (2.12)</p>
 </td>
 
 </tr>
@@ -792,26 +737,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Denmark</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.12)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameDenmark</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-8.29<sup>***</sup></p>
+<p><b>-8.29</b> (2.12)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -820,26 +751,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>France</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.12)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameFrance</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-7.15<sup>***</sup></p>
+<p><b>-7.15</b> (2.11)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -848,26 +765,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Germany</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.11)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameGermany</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-11.06<sup>***</sup></p>
+<p><b>-11.06</b> (2.12)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -876,26 +779,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Ireland</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.12)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameIreland</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-4.07</p>
+<p>-4.07 (2.13)</p>
 </td>
 
 </tr>
@@ -904,26 +793,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Italy</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.13)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameItaly</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-8.12<sup>***</sup></p>
+<p><b>-8.12</b> (2.17)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -932,26 +807,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Netherlands</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.17)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameNetherlands</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-2.97</p>
+<p>-2.97 (2.14)</p>
 </td>
 
 </tr>
@@ -960,26 +821,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Poland</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.14)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNamePoland</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-5.67<sup>**</sup></p>
+<p><b>-5.67</b> (2.17)<sup>**</sup></p>
 </td>
 
 </tr>
@@ -988,26 +835,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Spain</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.17)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameSpain</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-4.79<sup>*</sup></p>
+<p><b>-4.79</b> (2.24)<sup>*</sup></p>
 </td>
 
 </tr>
@@ -1016,26 +849,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>Sweden</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.24)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameSweden</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-9.53<sup>***</sup></p>
+<p><b>-9.53</b> (2.11)<sup>***</sup></p>
 </td>
 
 </tr>
@@ -1044,40 +863,12 @@ body {
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p> </p>
+<p>United Kingdom</p>
 </td>
 
 <td style="padding-left: 5px;padding-right: 5px;">
 
-<p>(2.11)</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>CountryNameUnited Kingdom</p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>-3.25</p>
-</td>
-
-</tr>
-
-<tr>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p> </p>
-</td>
-
-<td style="padding-left: 5px;padding-right: 5px;">
-
-<p>(2.13)</p>
+<p>-3.25 (2.13)</p>
 </td>
 
 </tr>
@@ -1132,7 +923,7 @@ body {
 
 <td style="font-size: 0.8em;" colspan="2">
 
-<p><sup><em><strong></sup>p &lt; 0.001; <sup></strong></sup>p &lt; 0.01; <sup></em></sup>p &lt; 0.05. htmlreg</p>
+<p><sup><em><strong></sup>p &lt; 0.001; <sup></strong></sup>p &lt; 0.01; <sup></em></sup>p &lt; 0.05</p>
 </td>
 
 </tr>
@@ -1141,9 +932,8 @@ body {
 
 </table>
 
-<p>THE FOLLOWING MUST BE UPDATED</p>
-<p>It yields the following result. The continuous variables Stringency Index and Date are both statistically significant at the 0.05 level. They show that with increased stringency the mobility decreases, while a later date is associated with an increased mobility. Also all expressions of the categorical variable Country are significant at the 0.05 level, with the exception of the United Kingdom.</p>
 <p>The United Kingdom being a non-significant exception in the non-hierarchical linear model is an interesting case, as we could observe from our previous diagram with the compliance-approximation that, on a country-level with a random intercept and a random slope, the linear regression line fitted the United Kingdom data exceptionally <em>well</em>. Thus, we require</p>
+<p>THIS TABLE WILL BE UPDATED BEFORE FINAL SUBMISSION</p>
 <table>
 <thead>
 <tr class="header">
