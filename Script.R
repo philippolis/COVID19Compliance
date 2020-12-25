@@ -8,6 +8,11 @@ library(plotly)
 library(reshape2)
 library(utils)
 
+# Hypothesis
+#H₀: There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
+
+#Hₐ: There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
+
 # Data Wrangling -----
 ## Adding the Policy Data -----
 ### Read in the Data
@@ -189,6 +194,10 @@ ggplot(data) +
 # Modelling ----
 
 ## Non-hierarchical model ----
+
+`Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε`
+
+
 lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
 
 summary(lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days))
