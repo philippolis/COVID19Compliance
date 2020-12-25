@@ -182,7 +182,7 @@ ggplot(data) +
   scale_y_continuous(name = "Policy Compliance Index") +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.x = element_text(size=12, vjust = 0.5)
+    axis.title.x = element_text(size=12, vjust = 0.5),
     ) +
   ggtitle("Policy Compliance in Europe Across Time")
 

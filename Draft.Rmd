@@ -312,7 +312,44 @@ ggplot(data = augment(lm(data = data,
   ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
 ```
 
-This suggests creating a hierarchical model with a random intercept for country in order to improve model fit.
+This suggests creating a hierarchical model with a random intercept for country in order to improve model fit. We can also see that the slopes do not differ substantially, so that for the sake of simplicity we can use only a random intercept in our model.
+
+\begin{equation}
+{Compliance Index}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {Country}_j + {\epsilon}_{ij}
+\end{equation}
+
+```{r Regression Table 2, echo=FALSE, fig.align='center', results="asis"}
+
+# Fit the model
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (1 | CountryName))
+
+# Generate regression table
+texreg::texreg(lmer_out, single.row = TRUE, 
+                         #                         custom.header = list("Model Results" = 1),
+                         #                         model.names = c("My name 1", "My name 2"), 
+                         custom.coef.names = c("Intercept", "Date", "Publicity",
+                                               "Cases/100,000/14 Days"),
+                                               #"Belgium",
+                                               #"Denmark",
+                                               #"France",
+                                               #"Germany",
+                                               #"Ireland",
+                                               #"Italy",
+                                               #"Netherlands",
+                                               #"Poland",
+                                               #"Spain",
+                                               #"Sweden",
+                                               #"United Kingdom"),
+                         bold = 0.05,
+                         center = TRUE,
+                         caption = "Regression Table 2"
+)
+
+```
+
+As we can see, the coefficients of the fixed effects at level one have not changed substantially, except for the fact that the predictor Cases/100,000/14Days has now become statistically significant. More interesting are the changes in the effects of our grouping variable.
+
+
 
 # References
 
