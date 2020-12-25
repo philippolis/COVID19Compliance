@@ -8,11 +8,6 @@ library(plotly)
 library(reshape2)
 library(utils)
 
-# Hypothesis
-#H₀: There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
-
-#Hₐ: There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
-
 # Data Wrangling -----
 ## Adding the Policy Data -----
 ### Read in the Data
@@ -195,14 +190,11 @@ ggplot(data) +
 
 ## Non-hierarchical model ----
 
-`Compliance Index = β₀ + β₁ × Date + β₂ × Country + β₃ × Publicity + β₄ × Cases per 100.000 per 14 days + ε`
-
-
 lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
 
 summary(lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days))
 
-### Creating nice regression table output
+### Creating nice regression table output ----
 lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
 
 #### Modify htmlreg arguments in order to improve table output
@@ -236,14 +228,9 @@ rstudioapi::viewer(htmlFile)
 
 ### Visualising different predicted intercepts and different slopes
 ggplot(data = augment(lm(data = data, 
-                         MobilityIndex ~ Date + CountryName + StringencyIndex)),
-       aes(x = Date, y = MobilityIndex, color = CountryName))  +
+                         ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
+       aes(x = Date, y = ComplianceIndex, color = CountryName))  +
   geom_smooth(aes(y = .fitted), method = "lm", se = FALSE)
-
-ggplot(data = augment(lm(data = data, 
-                         MobilityIndex ~ Date + CountryName + StringencyIndex)))  +
-  geom_line(aes(x = Date, y = .fitted, color = CountryName))
-
 
 ### Visualization of the non-hierarchical model ----
 

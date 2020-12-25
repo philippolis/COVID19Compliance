@@ -10,6 +10,11 @@ bibliography: References.json
 
 ---
 
+```{r, echo=FALSE, message = FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo = FALSE, dev = "cairo_pdf")
+```
+
+
 ```{r libraries, include=FALSE}
 # Loading the libraries ----
 library(dplyr)
@@ -22,6 +27,8 @@ library(reshape2)
 library(utils)
 library(texreg)
 library(stargazer)
+library(extrafont)
+loadfonts()
 ```
 
 
@@ -165,9 +172,9 @@ The COVID-19-Pandemic is an ongoing challenge for policy-makers. Especially, bec
 
 To find an answer to these questions, the following analysis will assess the following hypothesis.
 
-H(null): There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
+H\textsubscript{0}: There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
 
-H(alternative): There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
+H\textsubscript{a}: There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
 
 This analysis combines data from the Google COVID-19 Community Mobility Reports [@COVID19CommunityMobility2020] and data from the the Oxford Policy Tracker [@haleOxfordCOVID19Government2020]. The Google Mobility Report charts "movement trends over time by geography, across different categories."[@COVID19CommunityMobility2020] For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on "the strictness of 'lockdown style' policies that primarily restrict people's behaviour."[@haleOxfordCOVID19Government2020]
 
@@ -191,11 +198,11 @@ ggplot(data = data) +
   theme(
     axis.title.x = element_text(vjust = 0.5),
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.y.right = element_text(color = "black", size=12, vjust = 3)
+    axis.title.y.right = element_text(color = "black", size=12, vjust = 3),
+    text=element_text(family="CMU Serif")
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
-
 ```
 
 
@@ -216,7 +223,8 @@ ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   xlab("Country") +
   ylab("Policy Compliance Index") +
   ggtitle("Policy Compliance in Europe") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        text=element_text(family="CMU Serif"))
 ```
 
 Additionally, as we want to assess the change of policy compliance across time in Europe, we can fit a linear regression line to the compliance data. This shows us that in all of the European countries analyzed, compliance with mobility-reducing-policies has reduced.
@@ -235,7 +243,8 @@ ggplot(data) +
   scale_y_continuous(name = "Policy Compliance Index") +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.x = element_text(size=12, vjust = 0.5)
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Serif")
     ) +
   ggtitle("Policy Compliance in Europe Across Time")
 ```
@@ -297,7 +306,8 @@ ggplot(data = augment(lm(data = data,
   scale_y_continuous(name = "Policy Compliance Index") +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.x = element_text(size=12, vjust = 0.5)
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Serif")
     ) +
   ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
 ```
