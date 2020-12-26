@@ -6,6 +6,12 @@ library(lme4)
 library(broom.mixed)
 library(plotly)
 library(reshape2)
+library(utils)
+library(texreg)
+library(stargazer)
+library(extrafont)
+library(lmtest)
+loadfonts()
 
 # Data Wrangling -----
 ## Adding the Policy Data -----
@@ -31,6 +37,9 @@ policy_data_Europe <- policy_data_countries %>% filter(CountryCode == "DEU" |
                                                          CountryCode == "AUT" |
                                                          CountryCode == "IRL" |
                                                          CountryCode == "DNK")
+
+### Only selecting the columns that are interesting
+policy_data_Europe_small <- policy_data_Europe %>% select(Date, CountryName, StringencyIndex)
 
 
 ## Adding the Mobility Data ----
@@ -61,46 +70,100 @@ mobility_data_Europe <- mobility_data_countries %>% filter(country == "Germany" 
                                                              country == "Denmark" |
                                                              country == "Ireland")
 
-## Merging the Data into policyMobility_data_Europe ----
 ### renaming the date columns to match
 names(mobility_data_Europe)[names(mobility_data_Europe)=="date"] <- "Date"
 names(mobility_data_Europe)[names(mobility_data_Europe)=="country"] <- "CountryName"
 names(mobility_data_Europe)[names(mobility_data_Europe)=="avg_change"] <- "MobilityIndex"
 
-### Only selecting the columns that are interesting
+### Only selecting relevant data
 mobility_data_Europe_small <- mobility_data_Europe %>% select(Date, CountryName, MobilityIndex)
-policy_data_Europe_small <- policy_data_Europe %>% select(Date, CountryName, StringencyIndex)
 
-### Merging policy and mobility data on date
-policyMobility_data_Europe = mobility_data_Europe_small %>% 
-  inner_join(policy_data_Europe_small, by = c("Date", "CountryName"))
 
+## Adding the Cases Data ----
+
+###read the Dataset sheet in
+cases_data <- read.csv("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+
+### renaming the date and countries columns to match
+names(cases_data)[names(cases_data)=="dateRep"] <- "Date"
+names(cases_data)[names(cases_data)=="countriesAndTerritories"] <- "CountryName"
+
+### Forcing Date format
+cases_data$Date = as.Date(as.character(cases_data$Date), format = "%d/%m/%Y")
+
+### create dataframe with only national level of Germany, France, UK, Spain, Italy
+cases_data_Europe <- cases_data %>% filter(CountryName == "Germany" |
+                                             CountryName == "Italy" |
+                                             CountryName == "France" |
+                                             CountryName == "Spain" |
+                                             CountryName == "United_Kingdom" |
+                                             CountryName == "Netherlands" |
+                                             CountryName == "Belgium" |
+                                             CountryName == "Poland" |
+                                             CountryName == "Sweden" |
+                                             CountryName == "Ireland" |
+                                             CountryName == "Austria" |
+                                             CountryName == "Denmark")
+
+### Changing United_Kingdom to United Kingdom
+rename <- c(United_Kingdom="United Kingdom", Germany="Germany", Italy="Italy",
+            France="France", Spain="Spain", Netherlands="Netherlands", Belgium="Belgium",
+            Poland="Poland", Sweden="Sweden", Ireland="Ireland", Austria="Austria",
+            Denmark="Denmark")
+
+cases_data_Europe$CountryName <- as.character(rename[cases_data_Europe$CountryName])
+
+### Only selecting the columns that are interesting
+cases_data_Europe_small <- cases_data_Europe %>% select(Date, CountryName, notification_rate_per_100000_population_14.days)
+
+## Adding the Trends Data ----
+trends_data <- read.csv("GoogleTrends.csv", sep = ";")
+
+### Forcing correct date format
+trends_data$Date = as.Date(trends_data$Date, format = "%d.%m.%Y")+1
+
+## Renaming the Sum column to Publicity
+names(trends_data)[names(trends_data)=="Sum"] <- "Publicity"
+
+## Only selecting the columns that are interesting
+trends_data <- trends_data %>% select(Date, CountryName, Publicity)
+
+## Merging policy mobility trends and cases data on date and country ----
+
+data = policy_data_Europe_small %>% 
+  full_join(mobility_data_Europe_small, by = c("Date", "CountryName")) %>%
+  full_join(cases_data_Europe_small, by = c("Date", "CountryName")) %>%
+  full_join(trends_data, by = c("Date", "CountryName"))
 
 ## Adding a column with Compliance-index ----
 
-policyMobility_data_Europe$ComplianceIndex <- 100 - (policyMobility_data_Europe$StringencyIndex + policyMobility_data_Europe$MobilityIndex)
+data$ComplianceIndex <- 100 - (data$StringencyIndex + data$MobilityIndex)
 
 ### Rescaling the Compliance-index to assume values between 0 and 100
 
-policyMobility_data_Europe$ComplianceIndex <- rescale(policyMobility_data_Europe$ComplianceIndex, to = c(0, 100))
+data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
 
 
 # Explorative Data Visualization ----
-## Create a Boxplot of Mobility by Country ----
-ggplot(data = policyMobility_data_Europe, aes(x = CountryName, y = MobilityIndex)) +
-  geom_boxplot()
+
+
+## Correlation table
+pairs(subset(data, select = c(Date, Publicity, ComplianceIndex, notification_rate_per_100000_population_14.days)))
 
 ## Create a Boxplot of Compliance by Country ----
-ggplot(data = policyMobility_data_Europe, aes(x = CountryName, y = ComplianceIndex)) +
+ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   geom_boxplot() +
   xlab("Country") +
   ylab("Policy Compliance Index") +
   ggtitle("Policy Compliance in Europe") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        text=element_text(family="CMU Serif"),
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "solid"))
 
 ## Create a faceted plot with Stringency and Mobility for European Countries ----
 
-ggplot(data = policyMobility_data_Europe) +
+ggplot(data = data) +
   geom_line(aes(x = Date, y = StringencyIndex), color = "black", linetype = "longdash", size = 0.5) +
   geom_smooth(aes(x = Date, y = -1*MobilityIndex), method = "loess", span = 1/10, 
               se = FALSE, size = 0.5, color = "black", linetype = "solid") +
@@ -113,13 +176,18 @@ ggplot(data = policyMobility_data_Europe) +
   theme(
     axis.title.x = element_text(vjust = 0.5),
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.y.right = element_text(color = "black", size=12, vjust = 3)
+    axis.title.y.right = element_text(color = "black", size=12, vjust = 3),
+    text=element_text(family="CMU Sans Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white"),
+    plot.title = element_text(size = 11, face = "bold")
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
 
 ## Create a faceted plot with Compliance for European Countries ----
-ggplot(policyMobility_data_Europe) +
+ggplot(data) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "loess", se = FALSE, span = 1/10, 
               color = "black", linetype = "solid", size = 0.1) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "lm", se = FALSE, 
@@ -131,38 +199,88 @@ ggplot(policyMobility_data_Europe) +
   scale_y_continuous(name = "Policy Compliance Index") +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.x = element_text(size=12, vjust = 0.5)
-    ) +
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white")
+  ) +
   ggtitle("Policy Compliance in Europe Across Time")
 
 # Modelling ----
 
 ## Non-hierarchical model ----
-lm(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + CountryName + Date)
 
-summary(lm(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + CountryName + Date))
+lm_out <- lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
+
+summary(lm_out)
+
+### Creating nice regression table output ----
+lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
+
+#### Modify htmlreg arguments in order to improve table output
+#### Then insert the texreg statement in Rmd
+table <- texreg::htmlreg(lm1, single.row = TRUE, 
+#                         custom.header = list("Model Results" = 1),
+#                         model.names = c("My name 1", "My name 2"), 
+                         custom.coef.names = c("Intercept", "Date", "Publicity",
+                                               "Cases/100,000/14 Days",
+                                               "Belgium",
+                                               "Denmark",
+                                               "France",
+                                               "Germany",
+                                               "Ireland",
+                                               "Italy",
+                                               "Netherlands",
+                                               "Poland",
+                                               "Spain",
+                                               "Sweden",
+                                               "United Kingdom"),
+                          bold = 0.05,
+                          center = TRUE,
+                          caption = "Regression Table"
+                         )
+
+tempDir <- tempfile()
+dir.create(tempDir)
+htmlFile <- file.path(tempDir, "test.html")
+writeLines(table, htmlFile)
+rstudioapi::viewer(htmlFile)
 
 ### Visualising different predicted intercepts and different slopes
-ggplot(data = augment(lm(data = policyMobility_data_Europe, 
-                         MobilityIndex ~ Date + CountryName + StringencyIndex)),
-       aes(x = Date, y = MobilityIndex, color = CountryName))  +
+ggplot(data = augment(lm(data = data, 
+                         ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
+       aes(x = Date, y = ComplianceIndex, color = CountryName))  +
   geom_smooth(aes(y = .fitted), method = "lm", se = FALSE)
-
-ggplot(data = augment(lm(data = policyMobility_data_Europe, 
-                         MobilityIndex ~ Date + CountryName + StringencyIndex)))  +
-  geom_line(aes(x = Date, y = .fitted, color = CountryName))
-
 
 ### Visualization of the non-hierarchical model ----
 
+### Visualising different predicted intercepts and different slopes
+ggplot(data = augment(lm(data = data, 
+                         ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
+       aes(x = Date, y = ComplianceIndex, color = CountryName))  +
+  geom_smooth(aes(y = .fitted), method = "lm", se = FALSE) +
+  xlab("Month") +
+  scale_x_date(breaks = date_breaks("3 months"),
+               labels = date_format("%b\n%Y")) +
+  scale_y_continuous(name = "Policy Compliance Index") +
+  theme(
+    axis.title.y = element_text(color = "black", size=12, vjust = 3),
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted")
+  ) +
+  ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
+
 #### Fit model
 
-model_out <- lm(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date)
+model_out <- lm(data = data, MobilityIndex ~ StringencyIndex + Date)
 
 #### predict over sensible grid of values
-unique_stringency <- unique(policyMobility_data_Europe$StringencyIndex)
-unique_date <- unique(policyMobility_data_Europe$Date)
-grid <- with(policyMobility_data_Europe, expand.grid(unique_stringency, unique_date))
+unique_stringency <- unique(data$StringencyIndex)
+unique_date <- unique(data$Date)
+grid <- with(data, expand.grid(unique_stringency, unique_date))
 d <- setNames(data.frame(grid), c("StringencyIndex", "Date"))
 vals <- predict(model_out, newdata = d)
 
@@ -171,7 +289,7 @@ model_out <- matrix(vals, nrow = length(unique(d$StringencyIndex)), ncol = lengt
 
 model_out_plot <- plot_ly() %>% 
   add_surface(x = ~unique_date, y = ~unique_stringency, z = ~model_out, colorscale = list(c(0, 1), c("green", "yellow"))) %>% 
-  add_markers(data = policyMobility_data_Europe, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6, size = 0.1) %>%
+  add_markers(data = data, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6, size = 0.1) %>%
   layout(scene = list(xaxis = list(title = 'Date'),
                       yaxis = list(title = 'Stringency Index'),
                       zaxis = list(title = 'Mobility Index')))
@@ -181,42 +299,83 @@ hide_colorbar(model_out_plot)
 #### Visualising the linear model in 3D ----
 
 ##### Scatterplot for Europe
-plot_ly(data = policyMobility_data_Europe, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6) %>%
+plot_ly(data = data, z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, color = ~CountryName, opacity = 0.6) %>%
   add_markers(size=0.1)
 
 ##### Scatterplot for Austria
-plot_ly(data = subset(policyMobility_data_Europe, CountryName == "Austria"), z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, opacity = 0.6) %>%
+plot_ly(data = subset(data, CountryName == "Austria"), z = ~MobilityIndex, x = ~Date, y = ~StringencyIndex, opacity = 0.6) %>%
   add_markers(size=0.1)
 
 ##### Line plot for Europe
-plot_ly(policyMobility_data_Europe, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~CountryName, type = 'scatter3d', mode = 'lines',
+plot_ly(data, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~CountryName, type = 'scatter3d', mode = 'lines',
                opacity = 0.6, line = list(width = 3, reverscale = FALSE))
-
-## How does the mobility change over time in Europe? - I do understand this model ----
-lmer_out <- lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName))
-
-### Looking at the results
-summary(lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
-
-### extract out the fixed effect for date
-fixef(lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
-
-### extract out the random effect for country
-ranef(lmer(data = policyMobility_data_Europe, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
 
 ## How does the Compliance change over time in Europe? This model has not enough independent variables ----
 
-lmer_out <- lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName))
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (Date | CountryName))
 
 ### Looking at the results
-summary(lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName)))
+summary(lmer_out)
+
+### Getting p-values
+
+2*pt(11.505, 520, lower.tail = F)
+
+2*pt(0.435, 520, lower.tail = F)
+
+2*pt(1.873, 520, lower.tail = F)
 
 ### extract out the fixed effect for date
-fixef(lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName)))
+fixef(lmer_out)
 
 ### extract out the random effect for country
-ranef(lmer(data = policyMobility_data_Europe, ComplianceIndex ~ Date + (Date | CountryName)))
+ranef(lmer_out)
 
+### Formatting the regression table
+#### Modify htmlreg arguments in order to improve table output
+#### Then insert the texreg statement in Rmd
+table <- texreg::htmlreg(lmer_out, single.row = TRUE, 
+                        #                         custom.header = list("Model Results" = 1),
+                        #                         model.names = c("My name 1", "My name 2"), 
+                        custom.coef.names = c("Intercept", "Date", "Publicity",
+                                              "Cases/100,000/14 Days"),
+                        #"Belgium",
+                        #"Denmark",
+                        #"France",
+                        #"Germany",
+                        #"Ireland",
+                        #"Italy",
+                        #"Netherlands",
+                        #"Poland",
+                        #"Spain",
+                        #"Sweden",
+                        #"United Kingdom"),
+                        bold = 0.05,
+                        center = TRUE,
+                        caption = "Regression Table 2"
+)
+
+tempDir <- tempfile()
+dir.create(tempDir)
+htmlFile <- file.path(tempDir, "test.html")
+writeLines(table, htmlFile)
+rstudioapi::viewer(table)
+
+## Likelihood ratio test
+
+lrtest(lm_out, lmer_out)
+
+## Warning in modelUpdate(objects[[i - 1]], objects[[i]]): original model was of
+## class "lmerMod", updated model is of class "lm"
+## Likelihood ratio test
+## 
+## Model 1: LabVote19 ~ LabVote17 + Leave16Vote + (1 | region)
+## Model 2: LabVote19 ~ LabVote17 + Leave16Vote + region - 1
+##   #Df  LogLik Df  Chisq Pr(>Chisq)    
+## 1   5 -1738.8                         
+## 2  14 -1713.8  9 50.053  1.053e-07 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 # Communicating the Results ----
 
