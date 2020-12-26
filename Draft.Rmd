@@ -170,17 +170,23 @@ data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
 
 The COVID-19-Pandemic is an ongoing challenge for policy-makers. Especially, because overcoming it is so dependent on the policy-compliance of each and every individual. However, how is the state of this policy-compliance in Europe? Does it differ across different countries and how does it evolve over time?
 
-To find an answer to these questions, the following analysis will assess the following hypothesis.
+To find an answer to these questions, the following analysis will assess the following hypotheses.
 
-H\textsubscript{0}: There **is no** difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does not** express a trend.
+H\textsubscript{0}: There **is no** difference in compliance with mobility-reducing policies across European countries and this policy-compliance **does not** express a trend.
 
-H\textsubscript{a}: There **is** a difference in compliance with mobility-reducing policies in Europe and this policy-compliance **does** express a trend.
+H\textsubscript{a}: There **is** a difference in compliance with mobility-reducing policies across European countries and this policy-compliance **does** express a trend.
 
 This analysis combines data from the Google COVID-19 Community Mobility Reports [@COVID19CommunityMobility2020] and data from the the Oxford Policy Tracker [@haleOxfordCOVID19Government2020]. The Google Mobility Report charts "movement trends over time by geography, across different categories."[@COVID19CommunityMobility2020] For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on "the strictness of 'lockdown style' policies that primarily restrict people's behaviour."[@haleOxfordCOVID19Government2020]
 
+For this analysis, policy-compliance is approximated as the difference between the level of policy-stringency and the observed reduction in mobility. 
+
+`Compliance = 100 - (Policy Stringency Index - %-change in Mobility)`
+
+To assess our hypothesis more thoroughly, policy-compliance is additionally corrected for COVID-19-cases [@Data14DayNotification2020] and public attention on the topic, as approximated by Google search queries with the terms *"covid"* & *"coronavirus"* [@GoogleTrends].
+
 Countries included in the analysis were chosen based on their membership to the EU (including the United Kingdom) and their GDP.
 
-The following diagram shows how in March, April and May lock style policies were introduced and how mobility was reduced in concordance in almost all of the countries assessed. However, beginning immediately from there on, mobility started to increase again, with the gap between policy stringency and observed mobility-reduction widening. Note that policy stringency is on the left y-axis and mobility changes on the right. The scale of policy stringency is reversed for better comparability.
+The following diagram shows how in March, April and May lockdown-style policies were introduced and how mobility was reduced in concordance in almost all of the countries assessed. However, beginning immediately from there on, mobility started to increase again, with the gap between policy stringency and observed mobility-reduction widening - signaling reduced levels of policy-compliance.
 
 ```{r faceted plot Stringency and Mobility, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
 ## Create a faceted plot with Stringency and Mobility for European Countries ----
@@ -199,7 +205,10 @@ ggplot(data = data) +
     axis.title.x = element_text(vjust = 0.5),
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.y.right = element_text(color = "black", size=12, vjust = 3),
-    text=element_text(family="CMU Serif")
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white")
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
@@ -210,11 +219,7 @@ ggplot(data = data) +
 
 In order to build our model, we can make a preliminary, bivariate analysis that shows the variance of policy compliance across different European countries. 
 
-For this analysis, policy-compliance is approximated as the difference between the level of policy-stringency and the observed reduction in mobility. 
-
-`Compliance = 100 - (Policy Stringency Index - %-change in Mobility)`
-
-The boxplot shows us that, indeed, the levels of policy compliance among European countries differ.
+The boxplot shows us that, indeed, the levels of policy compliance across European countries differ while the intra-group variance is roughly the same.
 
 ```{r boxplot compliance, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
 ## Create a Boxplot of Compliance by Country ----
@@ -224,7 +229,9 @@ ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   ylab("Policy Compliance Index") +
   ggtitle("Policy Compliance in Europe") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-        text=element_text(family="CMU Serif"))
+        text=element_text(family="CMU Serif"),
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))
 ```
 
 Additionally, as we want to assess the change of policy compliance across time in Europe, we can fit a linear regression line to the compliance data. This shows us that in all of the European countries analyzed, compliance with mobility-reducing-policies has reduced.
@@ -244,8 +251,11 @@ ggplot(data) +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.x = element_text(size=12, vjust = 0.5),
-    text=element_text(family="CMU Serif")
-    ) +
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white")
+  ) +
   ggtitle("Policy Compliance in Europe Across Time")
 ```
 

@@ -271,31 +271,48 @@ plot_ly(data = subset(data, CountryName == "Austria"), z = ~MobilityIndex, x = ~
 plot_ly(data, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~CountryName, type = 'scatter3d', mode = 'lines',
                opacity = 0.6, line = list(width = 3, reverscale = FALSE))
 
-## How does the mobility change over time in Europe? - I do understand this model ----
-lmer_out <- lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName))
-
-### Looking at the results
-summary(lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
-
-### extract out the fixed effect for date
-fixef(lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
-
-### extract out the random effect for country
-ranef(lmer(data = data, MobilityIndex ~ StringencyIndex + Date + (Date | CountryName)))
-
 ## How does the Compliance change over time in Europe? This model has not enough independent variables ----
 
-lmer_out <- lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName))
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (1 | CountryName))
 
 ### Looking at the results
-summary(lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName)))
+summary(lmer_out)
 
 ### extract out the fixed effect for date
-fixef(lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName)))
+fixef(lmer_out)
 
 ### extract out the random effect for country
-ranef(lmer(data = data, ComplianceIndex ~ Date + (Date | CountryName)))
+ranef(lmer_out)
 
+### Formatting the regression table
+#### Modify htmlreg arguments in order to improve table output
+#### Then insert the texreg statement in Rmd
+table <- texreg::htmlreg(lmer_out, single.row = TRUE, 
+                        #                         custom.header = list("Model Results" = 1),
+                        #                         model.names = c("My name 1", "My name 2"), 
+                        custom.coef.names = c("Intercept", "Date", "Publicity",
+                                              "Cases/100,000/14 Days"),
+                        #"Belgium",
+                        #"Denmark",
+                        #"France",
+                        #"Germany",
+                        #"Ireland",
+                        #"Italy",
+                        #"Netherlands",
+                        #"Poland",
+                        #"Spain",
+                        #"Sweden",
+                        #"United Kingdom"),
+                        bold = 0.05,
+                        center = TRUE,
+                        caption = "Regression Table 2"
+)
+
+tempDir <- tempfile()
+dir.create(tempDir)
+htmlFile <- file.path(tempDir, "test.html")
+writeLines(table, htmlFile)
+rstudioapi::viewer(table)
 
 # Communicating the Results ----
 
