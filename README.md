@@ -4,7 +4,7 @@ The COVID-19-Pandemic is an ongoing challenge for policymakers. Especially, beca
 # Data
 This analysis combines data from the [Google COVID-19 Community Mobility Reports](https://www.google.com/covid19/mobility) and data from the [Oxford Policy Tracker](https://www.bsg.ox.ac.uk/research/research-projects/coronavirus-government-response-tracker). The Google Mobility Report charts “movement trends over time by geography, across different categories.” For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on “the strictness of ‘lockdown style’ policies that primarily restrict people’s behaviour.” (Hale et al.2020)
 
-For this analysis, policy-compliance is approximated as the difgerence between the level of policy-stringency and the observed reduction in mobility.
+For this analysis, policy-compliance is approximated as the difference between the level of policy-stringency and the observed reduction in mobility.
 
 Compliance = 100 - (Policy Stringency Index - %-change in Mobility)
 
