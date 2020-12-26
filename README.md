@@ -1,6 +1,3 @@
-# COVID19Compliance
-An analysis of the compliance with lockdown style COVID-19 policies in different European countries across time.
+# Abstract
+The COVID-19-Pandemic is an ongoing challenge for policymakers. Especially, because overcoming it is so dependent on the policy-compliance of each and every individual. However, how is the state of this policy-compliance in Europe? Does it differ across different countries and how does it evolve over time? This analysis tests both a non- and a hierarchical model. It finds that, interestingly, levels of compliance with mobility-reducing COVID-19-policies differ across selected European countries and that policy-compliance expresses an alarming, negative trend.
 
-The Main branch predicts the MobilityIndex.
-
-The Compliance branch predicts the ComplianceIndex.
