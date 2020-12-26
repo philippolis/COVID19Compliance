@@ -7,6 +7,11 @@ library(broom.mixed)
 library(plotly)
 library(reshape2)
 library(utils)
+library(texreg)
+library(stargazer)
+library(extrafont)
+library(lmtest)
+loadfonts()
 
 # Data Wrangling -----
 ## Adding the Policy Data -----
@@ -141,13 +146,20 @@ data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
 
 # Explorative Data Visualization ----
 
+
+## Correlation table
+pairs(subset(data, select = c(Date, Publicity, ComplianceIndex, notification_rate_per_100000_population_14.days)))
+
 ## Create a Boxplot of Compliance by Country ----
 ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   geom_boxplot() +
   xlab("Country") +
   ylab("Policy Compliance Index") +
   ggtitle("Policy Compliance in Europe") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        text=element_text(family="CMU Serif"),
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_line(colour = "grey", linetype = "solid"))
 
 ## Create a faceted plot with Stringency and Mobility for European Countries ----
 
@@ -164,7 +176,11 @@ ggplot(data = data) +
   theme(
     axis.title.x = element_text(vjust = 0.5),
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.y.right = element_text(color = "black", size=12, vjust = 3)
+    axis.title.y.right = element_text(color = "black", size=12, vjust = 3),
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white")
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
@@ -183,16 +199,20 @@ ggplot(data) +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.x = element_text(size=12, vjust = 0.5),
-    ) +
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white")
+  ) +
   ggtitle("Policy Compliance in Europe Across Time")
 
 # Modelling ----
 
 ## Non-hierarchical model ----
 
-lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
+lm_out <- lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
 
-summary(lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days))
+summary(lm_out)
 
 ### Creating nice regression table output ----
 lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
@@ -234,6 +254,24 @@ ggplot(data = augment(lm(data = data,
 
 ### Visualization of the non-hierarchical model ----
 
+### Visualising different predicted intercepts and different slopes
+ggplot(data = augment(lm(data = data, 
+                         ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
+       aes(x = Date, y = ComplianceIndex, color = CountryName))  +
+  geom_smooth(aes(y = .fitted), method = "lm", se = FALSE) +
+  xlab("Month") +
+  scale_x_date(breaks = date_breaks("3 months"),
+               labels = date_format("%b\n%Y")) +
+  scale_y_continuous(name = "Policy Compliance Index") +
+  theme(
+    axis.title.y = element_text(color = "black", size=12, vjust = 3),
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted")
+  ) +
+  ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
+
 #### Fit model
 
 model_out <- lm(data = data, MobilityIndex ~ StringencyIndex + Date)
@@ -273,10 +311,18 @@ plot_ly(data, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~Coun
 
 ## How does the Compliance change over time in Europe? This model has not enough independent variables ----
 
-lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (1 | CountryName))
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (Date | CountryName))
 
 ### Looking at the results
 summary(lmer_out)
+
+### Getting p-values
+
+2*pt(11.505, 520, lower.tail = F)
+
+2*pt(0.435, 520, lower.tail = F)
+
+2*pt(1.873, 520, lower.tail = F)
 
 ### extract out the fixed effect for date
 fixef(lmer_out)
@@ -313,6 +359,22 @@ dir.create(tempDir)
 htmlFile <- file.path(tempDir, "test.html")
 writeLines(table, htmlFile)
 rstudioapi::viewer(table)
+
+## Likelihood ratio test
+
+lrtest(lm_out, lmer_out)
+
+## Warning in modelUpdate(objects[[i - 1]], objects[[i]]): original model was of
+## class "lmerMod", updated model is of class "lm"
+## Likelihood ratio test
+## 
+## Model 1: LabVote19 ~ LabVote17 + Leave16Vote + (1 | region)
+## Model 2: LabVote19 ~ LabVote17 + Leave16Vote + region - 1
+##   #Df  LogLik Df  Chisq Pr(>Chisq)    
+## 1   5 -1738.8                         
+## 2  14 -1713.8  9 50.053  1.053e-07 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 # Communicating the Results ----
 

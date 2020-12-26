@@ -27,6 +27,7 @@ library(reshape2)
 library(utils)
 library(texreg)
 library(stargazer)
+library(lmtest)
 library(extrafont)
 loadfonts()
 ```
@@ -270,6 +271,38 @@ The following non-hierarchical model predicts the Mobility Index as the dependen
 
 It yields the following result. Except for Date, non of the continuous variables Publicity and Cases/100.000/14 Days are statistically significant. Date is statistically significant at the 0.05 level. It's coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day.
 
+```{r Non-Hiearchical Model, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+## Fit the model
+lm_out <- lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
+
+## Look at the results
+summary(lm_out)
+
+## Call:
+## lm(formula = ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days, 
+##     data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -39.271  -6.424  -0.826   6.354  42.727 
+## 
+## Coefficients:
+##                                                   Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                                      1.430e+03  1.181e+02  12.113   <2e-16 ***
+## Date                                            -7.442e-02  6.400e-03 -11.627   <2e-16 ***
+## Publicity                                       -8.653e-03  2.192e-02  -0.395    0.693    
+## notification_rate_per_100000_population_14.days  6.592e-03  2.551e-03   2.584    0.010 *  
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## 
+## Residual standard error: 10.28 on 516 degrees of freedom
+##   (3797 observations deleted due to missingness)
+## Multiple R-squared:  0.2418,	Adjusted R-squared:  0.2374 
+## F-statistic: 54.86 on 3 and 516 DF,  p-value: < 2.2e-16
+
+```
+
+
 | Variable              | Coefficient | Std. Error | P-Value |
 | --------------------- | -----------: | ----------: | :-------: |
 | Date                  | −0.07       | 0.01     | ∗∗∗     |
@@ -295,9 +328,7 @@ With Country as the categorical variable, all expressions are statistically sign
 
 ## Linear Multi-Level Model
 
-As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria.
-
-Additionally, the following plot shows slightly different slopes of the countries.
+As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria. Additionally, the following plot shows that the slopes for Compliance vs. Date by Country differ slightly.
 
 ```{r Non-hierarchical different intercepts and slopes, message=FALSE, warning=FALSE}
 ggplot(data = augment(lm(data = data, 
@@ -321,10 +352,104 @@ ggplot(data = augment(lm(data = data,
 Thus, in order to better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
 
 \begin{equation}
-{Compliance Index}_{ij} = {\beta}_0 + ({\beta}_1 * {Date}_{ij}) + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {Country}_{0j} + {\epsilon}_{0ij}
+{Compliance Index}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {\beta}_{1j} * {Date} + {Country}_{0j} + {\epsilon}_{0ij}
 \end{equation}
 
-As we can see, the coefficients of the fixed effects at level one have not changed substantially, except for the fact that the predictor Cases/100,000/14Days has now become statistically significant. More interesting are the changes in the effects of our grouping variable.
+```{r Hierarchical model, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+## How does the Compliance change over time in Europe? This model has not enough independent variables ----
+
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (Date | CountryName))
+
+### Looking at the results
+summary(lmer_out3)
+
+## Linear mixed model fit by REML ['lmerMod']
+## Formula: ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  
+##     (Date | CountryName)
+##    Data: data
+## 
+## REML criterion at convergence: 3908.6
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.7395 -0.6504 -0.0370  0.5971  3.7889 
+## 
+## Random effects:
+##  Groups      Name        Variance  Std.Dev.  Corr 
+##  CountryName (Intercept) 9.644e+01 9.8205986      
+##              Date        9.074e-07 0.0009526 -1.00
+##  Residual                9.643e+01 9.8196921      
+## Number of obs: 520, groups:  CountryName, 12
+## 
+## Fixed effects:
+##                                                   Estimate Std. Error t value
+## (Intercept)                                      1.376e+03  1.145e+02  12.015
+## Date                                            -7.148e-02  6.213e-03 -11.505
+## Publicity                                       -1.027e-02  2.362e-02  -0.435
+## notification_rate_per_100000_population_14.days  4.744e-03  2.533e-03   1.873
+## 
+## Correlation of Fixed Effects:
+##             (Intr) Date   Pblcty
+## Date        -1.000              
+## Publicity   -0.155  0.148       
+## n___100000_  0.610 -0.610 -0.288
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see ?isSingular
+
+### Getting p-values
+
+2*pt(11.505, 520, lower.tail = F)
+
+2*pt(0.435, 520, lower.tail = F)
+
+2*pt(1.873, 520, lower.tail = F)
+
+## > 2*pt(11.505, 520, lower.tail = F)
+## [1] 1.906225e-27
+## > 2*pt(0.435, 520, lower.tail = F)
+## [1] 0.6637429
+## > 2*pt(1.873, 520, lower.tail = F)
+## [1] 0.06162918
+
+```
+
+
+| Random effects | -         | -        | -         |
+| -------------- | --------- | --------: | ---------: |
+| Groups         | Name      | Variance | Std. Dev. |
+| Country        | Intercept | 96.44 | 9.82      |
+|                | Date      | 0.00 | 0.00      |
+| Residual       |  |   96.43 |    9.82         |
+Number of observations: 520, Number of groups: 12
+
+| Fixed effects         | -         | -          | -       |   -  |
+| --------------------- | ---------: | ----------: | -------: | :---: |
+|                       | Estimate  | Std. Error | t-value |   p-value  |
+| Date                  | -0.07 | 0.01  | -11.51  | ∗∗∗   |
+| Publicity             | -0.01 | 0.02   | -0.44   |     |
+| Cases/100,000/14 Days | 0.00  | 0.00   | 1.87    |    |
+∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
+
+As we can see, the coefficients of the fixed effects at level one have not changed substantially. Still, the fixed effect of Date is the only one that is statistically significant. The fact that the variance of the residual is almost as big as the variance of the random intercepts casts in doubt the explanatory value of our model. 
+
+## Model comparison
+
+```{r Likelihood ratio test, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+lrtest(lm_out, lmer_out)
+
+## Likelihood ratio test
+## 
+## Model 1: ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days
+## Model 2: ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + 
+##     (Date | CountryName)
+##   #Df  LogLik Df  Chisq Pr(>Chisq)   
+## 1   5 -1947.3                        
+## 2   8 -1954.3  3 13.991   0.002917 **
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+```
+
 
 
 # References
