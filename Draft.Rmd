@@ -186,7 +186,7 @@ For this analysis, policy-compliance is approximated as the difference between t
 
 `Compliance = 100 - (Policy Stringency Index - %-change in Mobility)`
 
-To assess our hypothesis more thoroughly, policy-compliance is additionally corrected for COVID-19-cases [@Data14DayNotification2020] and public attention on the topic, as approximated by Google search queries with the terms *"covid"* & *"coronavirus"* [@GoogleTrends].
+To assess our hypothesis more thoroughly, policy-compliance is additionally corrected for COVID-19-cases [@Data14DayNotification2020] and public attention on the topic, as approximated by Google search queries with the terms *"covid"* and *"corona"* [@GoogleTrends].
 
 Countries included in the analysis were chosen based on their membership to the EU (including the United Kingdom) and their GDP.
 
