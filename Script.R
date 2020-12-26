@@ -177,10 +177,11 @@ ggplot(data = data) +
     axis.title.x = element_text(vjust = 0.5),
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.y.right = element_text(color = "black", size=12, vjust = 3),
-    text=element_text(family="CMU Serif"),
+    text=element_text(family="CMU Sans Serif"),
     panel.background = element_rect(fill = "white"),
     panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
-    strip.background = element_rect(fill="white")
+    strip.background = element_rect(fill="white"),
+    plot.title = element_text(size = 11, face = "bold")
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")

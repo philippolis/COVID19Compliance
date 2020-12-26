@@ -1,11 +1,14 @@
 ---
 title: "COVID-19 Policy-Compliance in Europe"
 author: "Philipp Holz"
-date: 'December 24, 2020'
+#date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "26 December 2020"
 output: 
   pdf_document:
     toc: true
     latex_engine: xelatex
+    fig_width: 6
+    fig_height: 4
 bibliography: References.json
 
 ---
@@ -169,7 +172,7 @@ data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
 
 # Introduction
 
-The COVID-19-Pandemic is an ongoing challenge for policy-makers. Especially, because overcoming it is so dependent on the policy-compliance of each and every individual. However, how is the state of this policy-compliance in Europe? Does it differ across different countries and how does it evolve over time?
+The COVID-19-Pandemic is an ongoing challenge for policymakers. Especially, because overcoming it is so dependent on the policy-compliance of each and every individual. However, how is the state of this policy-compliance in Europe? Does it differ across different countries and how does it evolve over time?
 
 To find an answer to these questions, the following analysis will assess the following hypotheses.
 
@@ -177,7 +180,7 @@ H\textsubscript{0}: There **is no** difference in compliance with mobility-reduc
 
 H\textsubscript{a}: There **is** a difference in compliance with mobility-reducing policies across European countries and this policy-compliance **does** express a trend.
 
-This analysis combines data from the Google COVID-19 Community Mobility Reports [@COVID19CommunityMobility2020] and data from the the Oxford Policy Tracker [@haleOxfordCOVID19Government2020]. The Google Mobility Report charts "movement trends over time by geography, across different categories."[@COVID19CommunityMobility2020] For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on "the strictness of 'lockdown style' policies that primarily restrict people's behaviour."[@haleOxfordCOVID19Government2020]
+This analysis combines data from the Google COVID-19 Community Mobility Reports [@COVID19CommunityMobility2020] and data from the Oxford Policy Tracker [@haleOxfordCOVID19Government2020]. The Google Mobility Report charts "movement trends over time by geography, across different categories."[@COVID19CommunityMobility2020] For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on "the strictness of 'lockdown style' policies that primarily restrict people's behaviour."[@haleOxfordCOVID19Government2020]
 
 For this analysis, policy-compliance is approximated as the difference between the level of policy-stringency and the observed reduction in mobility. 
 
@@ -187,7 +190,7 @@ To assess our hypothesis more thoroughly, policy-compliance is additionally corr
 
 Countries included in the analysis were chosen based on their membership to the EU (including the United Kingdom) and their GDP.
 
-The following diagram shows how in March, April and May lockdown-style policies were introduced and how mobility was reduced in concordance in almost all of the countries assessed. However, beginning immediately from there on, mobility started to increase again, with the gap between policy stringency and observed mobility-reduction widening - signaling reduced levels of policy-compliance.
+The following diagram shows how in March, April and May lockdown-style policies were introduced and how mobility was reduced in concordance in almost all the countries assessed. However, beginning immediately from there on, mobility started to increase again, with the gap between policy stringency and observed mobility-reduction widening - signaling reduced levels of policy-compliance.
 
 ```{r faceted plot Stringency and Mobility, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
 ## Create a faceted plot with Stringency and Mobility for European Countries ----
@@ -206,10 +209,11 @@ ggplot(data = data) +
     axis.title.x = element_text(vjust = 0.5),
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.y.right = element_text(color = "black", size=12, vjust = 3),
-    text=element_text(family="CMU Serif"),
+    text=element_text(family="CMU Sans Serif"),
     panel.background = element_rect(fill = "white"),
     panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
-    strip.background = element_rect(fill="white")
+    strip.background = element_rect(fill="white"),
+    plot.title = element_text(size = 11, face = "bold")
   ) +
   geom_hline(yintercept = 0, color = "black", size = 0.5) +
   ggtitle("Development of Policy Stringency and Mobility Reduction in Europe")
@@ -230,9 +234,10 @@ ggplot(data = data, aes(x = CountryName, y = ComplianceIndex)) +
   ylab("Policy Compliance Index") +
   ggtitle("Policy Compliance in Europe") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-        text=element_text(family="CMU Serif"),
+        text=element_text(family="CMU Sans Serif"),
         panel.background = element_rect(fill = "white"),
-        panel.grid.major = element_line(colour = "grey", linetype = "dotted"))
+        panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+        plot.title = element_text(size = 11, face = "bold"))
 ```
 
 Additionally, as we want to assess the change of policy compliance across time in Europe, we can fit a linear regression line to the compliance data. This shows us that in all of the European countries analyzed, compliance with mobility-reducing-policies has reduced.
@@ -241,7 +246,7 @@ Additionally, as we want to assess the change of policy compliance across time i
 ## Create a faceted plot with Compliance for European Countries ----
 ggplot(data) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "loess", se = FALSE, span = 1/10, 
-              color = "black", linetype = "solid", size = 0.1) +
+              color = "black", linetype = "solid", size = 0.2) +
   geom_smooth(aes(x = Date, y = ComplianceIndex), method = "lm", se = FALSE, 
               color = "black", linetype = "solid", size = 1) + 
   facet_wrap(~CountryName) +
@@ -252,11 +257,11 @@ ggplot(data) +
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.x = element_text(size=12, vjust = 0.5),
-    text=element_text(family="CMU Serif"),
+    text=element_text(family="CMU Sans Serif"),
     panel.background = element_rect(fill = "white"),
     panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
-    strip.background = element_rect(fill="white")
-  ) +
+    strip.background = element_rect(fill="white"),
+    plot.title = element_text(size = 11, face = "bold")) +
   ggtitle("Policy Compliance in Europe Across Time")
 ```
 
@@ -269,7 +274,7 @@ The following non-hierarchical model predicts the Mobility Index as the dependen
 {Compliance Index} = {\beta}_0 + {\beta}_1 * {Date} + {\beta}_2 * {Country} + {\beta}_3 * {Publicity} + {\beta}_4 * {Cases/100.000/14 days} + {\epsilon}
 \end{equation}
 
-It yields the following result. Except for Date, non of the continuous variables Publicity and Cases/100.000/14 Days are statistically significant. Date is statistically significant at the 0.05 level. It's coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day.
+It yields the following result. Except for Date, none of the continuous variables Publicity and Cases/100.000/14 Days are statistically significant. Date is statistically significant at the 0.05 level. Its coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day.
 
 ```{r Non-Hiearchical Model, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 ## Fit the model
@@ -324,13 +329,13 @@ Adj. R\textsuperscript{2} = 0.29;
 Num. obs. = 520;
 ∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
-With Country as the categorical variable, all expressions are statistically significant at the 0.05 level, with the exception of Belgium, Ireland, the Netherlands and the United Kingdom, when compared to Austria as the reference category. The adjusted R² indicates that the model explains 29% of the observed variance.
+With Country as the categorical variable, all expressions are statistically significant at the 0.05 level, with the exception of Belgium, Ireland, the Netherlands, and the United Kingdom, when compared to Austria as the reference category. The adjusted R² indicates that the model explains 29% of the observed variance.
 
 ## Linear Multi-Level Model
 
 As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria. Additionally, the following plot shows that the slopes for Compliance vs. Date by Country differ slightly.
 
-```{r Non-hierarchical different intercepts and slopes, message=FALSE, warning=FALSE}
+```{r Non-hierarchical different intercepts and slopes, message=FALSE, warning=FALSE, fig.align = "center"}
 ggplot(data = augment(lm(data = data, 
                          ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
        aes(x = Date, y = ComplianceIndex, color = CountryName))  +
@@ -342,14 +347,14 @@ ggplot(data = augment(lm(data = data,
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.x = element_text(size=12, vjust = 0.5),
-    text=element_text(family="CMU Serif"),
+    text=element_text(family="CMU Sans Serif"),
     panel.background = element_rect(fill = "white"),
-    panel.grid.major = element_line(colour = "grey", linetype = "dotted")
-  ) +
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    plot.title = element_text(size = 11, face = "bold")) +
   ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
 ```
 
-Thus, in order to better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
+Thus, to better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
 
 \begin{equation}
 {Compliance Index}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {\beta}_{1j} * {Date} + {Country}_{0j} + {\epsilon}_{0ij}
@@ -414,20 +419,20 @@ summary(lmer_out3)
 ```
 
 
-| Random effects | -         | -        | -         |
-| -------------- | --------- | --------: | ---------: |
+| Random effects | -         |        - |         - |
+| -------------- | --------- | --------:| ---------:|
 | Groups         | Name      | Variance | Std. Dev. |
-| Country        | Intercept | 96.44 | 9.82      |
-|                | Date      | 0.00 | 0.00      |
-| Residual       |  |   96.43 |    9.82         |
+| Country        | Intercept |    96.44 |      9.82 |
+|                | Date      |     0.00 |      0.00 |
+| Residual       |           |    96.43 |      9.82 |
 Number of observations: 520, Number of groups: 12
 
-| Fixed effects         | -         | -          | -       |   -  |
-| --------------------- | ---------: | ----------: | -------: | :---: |
-|                       | Estimate  | Std. Error | t-value |   p-value  |
-| Date                  | -0.07 | 0.01  | -11.51  | ∗∗∗   |
-| Publicity             | -0.01 | 0.02   | -0.44   |     |
-| Cases/100,000/14 Days | 0.00  | 0.00   | 1.87    |    |
+| Fixed effects         |        - |          - |       - |    -    |
+| --------------------- | --------:| ----------:| -------:|:-------:|
+|                       | Estimate | Std. Error | t-value | p-value |
+| Date                  |    -0.07 |       0.01 |  -11.51 |   ∗∗∗   |
+| Publicity             |    -0.01 |       0.02 |   -0.44 |         |
+| Cases/100,000/14 Days |     0.00 |       0.00 |    1.87 |         |
 ∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
 As we can see, the coefficients of the fixed effects at level one have not changed substantially. Still, the fixed effect of Date is the only one that is statistically significant. The fact that the variance of the residual is almost as big as the variance of the random intercepts casts in doubt the explanatory value of our model. 
@@ -450,7 +455,23 @@ lrtest(lm_out, lmer_out)
 ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
+Finally, to compare our hierarchical model-fit with the model-fit of our non-hierarchical model, we can compute a likelihood ratio test. This yields the following result.
 
+`Model 1: ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days`
+
+`Model 2: ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + (Date | CountryName)`
+
+| Model | Df  | LogLik  | Chisq  | Pr(>Chisq)  |
+| ----- | --- | ------- | ------ | ----------- |
+| 1     | 5   | -1947.3 |        |             |
+| 2     | 8   | -1954.3 | 13.991 | 0.002917 ** |
+∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
+
+As we can see, the improvement of our hierarchical model over our non-hierarchical model is statistically significant at the 0.05 level.
+
+# Conclusion
+
+This analysis has shown that, interestingly, levels of compliance with mobility-reducing COVID-19-policies differ across selected European countries and that policy-compliance expresses an alarming, negative trend. We were able to show these findings using both a non-hierarchical and a hierarchical model. Nevertheless, this analysis has also shown that a large amount of variance in policy compliance remains unexplained by our models, which might be due to their linear character. Further attempts will have to be made in that regard.
 
 # References
 
