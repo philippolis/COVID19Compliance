@@ -268,44 +268,38 @@ The following non-hierarchical model predicts the Mobility Index as the dependen
 {Compliance Index} = {\beta}_0 + {\beta}_1 * {Date} + {\beta}_2 * {Country} + {\beta}_3 * {Publicity} + {\beta}_4 * {Cases/100.000/14 days} + {\epsilon}
 \end{equation}
 
-It yields the following result. Except for Date, non of the continuous variables Publicity and Cases/100.000/14 Days are statistically significant. Date is statistically significant at the 0.05 level. It's coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases by 0.07 points each day.
+It yields the following result. Except for Date, non of the continuous variables Publicity and Cases/100.000/14 Days are statistically significant. Date is statistically significant at the 0.05 level. It's coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day.
+
+| Variable              | Coefficient | Std. Error | P-Value |
+| --------------------- | -----------: | ----------: | :-------: |
+| Date                  | −0.07       | 0.01     | ∗∗∗     |
+| Publicity             | −0.01       | 0.02     |         |
+| Cases/100,000/14 Days | 0.00        | 0.00     |         |
+| Belgium               | −3.21       | 2.12     |         |
+| Denmark               | -8.29       | 2.12       | ∗∗∗     |
+| France                | -7.15       | 2.11     | ∗∗∗     |
+| Germany               | −11.06      | 2.12     | ∗∗∗     |
+| Ireland               | −4.07       | 2.13     |         |
+| Italy                 | −8.12       | 2.17     | ∗∗∗     |
+| Netherlands           | −2.97       | 2.14     |         |
+| Poland                | −5.67       | 2.17     | ∗∗      |
+| Spain                 | −4.79       | 2.24     | ∗       |
+| Sweden                | −9.53       | 2.11     | ∗∗∗     |
+| United Kingdom        | −3.25       | 2.13     |         |
+R\textsuperscript{2} = 0.31;
+Adj. R\textsuperscript{2} = 0.29;
+Num. obs. = 520;
+∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
 With Country as the categorical variable, all expressions are statistically significant at the 0.05 level, with the exception of Belgium, Ireland, the Netherlands and the United Kingdom, when compared to Austria as the reference category. The adjusted R² indicates that the model explains 29% of the observed variance.
 
-```{r Regression Table, echo=FALSE, fig.align='center', results="asis"}
-
-# Fit the model
-lm1 <- lm(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + CountryName)
-
-# Generate regression table
-texreg::texreg(lm1, single.row = TRUE, 
-#                         custom.header = list("Model Results" = 1),
-#                         model.names = c("My name 1", "My name 2"), 
-                         custom.coef.names = c("Intercept", "Date", "Publicity",
-                                               "Cases/100,000/14 Days",
-                                               "Belgium",
-                                               "Denmark",
-                                               "France",
-                                               "Germany",
-                                               "Ireland",
-                                               "Italy",
-                                               "Netherlands",
-                                               "Poland",
-                                               "Spain",
-                                               "Sweden",
-                                               "United Kingdom"),
-                          bold = 0.05,
-                          center = TRUE,
-                          caption = "Regression Table"
-                         )
-```
-
 ## Linear Multi-Level Model
 
-However, when plotting the fitted values from the non-hierarchical linear model by country, we can observe different discrete levels of compliance by date, e.g. with Austria showing much higher levels of compliance than Germany and Sweden.
+As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria.
 
-```{r Linear model predictions by country, echo=FALSE, fig.align='center', message=FALSE, warning=FALSE}
-### Visualising different predicted intercepts and different slopes
+Additionally, the following plot shows slightly different slopes of the countries.
+
+```{r Non-hierarchical different intercepts and slopes, message=FALSE, warning=FALSE}
 ggplot(data = augment(lm(data = data, 
                          ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
        aes(x = Date, y = ComplianceIndex, color = CountryName))  +
@@ -317,48 +311,20 @@ ggplot(data = augment(lm(data = data,
   theme(
     axis.title.y = element_text(color = "black", size=12, vjust = 3),
     axis.title.x = element_text(size=12, vjust = 0.5),
-    text=element_text(family="CMU Serif")
-    ) +
+    text=element_text(family="CMU Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted")
+  ) +
   ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
 ```
 
-This suggests creating a hierarchical model with a random intercept for country in order to improve model fit. We can also see that the slopes do not differ substantially, so that for the sake of simplicity we can use only a random intercept in our model.
+Thus, in order to better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
 
 \begin{equation}
-{Compliance Index}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {Country}_j + {\epsilon}_{ij}
+{Compliance Index}_{ij} = {\beta}_0 + ({\beta}_1 * {Date}_{ij}) + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {Country}_{0j} + {\epsilon}_{0ij}
 \end{equation}
 
-```{r Regression Table 2, echo=FALSE, fig.align='center', results="asis"}
-
-# Fit the model
-lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (1 | CountryName))
-
-# Generate regression table
-texreg::texreg(lmer_out, single.row = TRUE, 
-                         #                         custom.header = list("Model Results" = 1),
-                         #                         model.names = c("My name 1", "My name 2"), 
-                         custom.coef.names = c("Intercept", "Date", "Publicity",
-                                               "Cases/100,000/14 Days"),
-                                               #"Belgium",
-                                               #"Denmark",
-                                               #"France",
-                                               #"Germany",
-                                               #"Ireland",
-                                               #"Italy",
-                                               #"Netherlands",
-                                               #"Poland",
-                                               #"Spain",
-                                               #"Sweden",
-                                               #"United Kingdom"),
-                         bold = 0.05,
-                         center = TRUE,
-                         caption = "Regression Table 2"
-)
-
-```
-
 As we can see, the coefficients of the fixed effects at level one have not changed substantially, except for the fact that the predictor Cases/100,000/14Days has now become statistically significant. More interesting are the changes in the effects of our grouping variable.
-
 
 
 # References
