@@ -145,8 +145,6 @@ data$ComplianceIndex <- rescale(data$ComplianceIndex, to = c(0, 100))
 
 
 # Explorative Data Visualization ----
-
-
 ## Correlation table
 pairs(subset(data, select = c(Date, Publicity, ComplianceIndex, notification_rate_per_100000_population_14.days)))
 
@@ -208,10 +206,15 @@ ggplot(data) +
   ggtitle("Policy Compliance in Europe Across Time")
 
 # Modelling ----
+## Non-hierarchical model 1 ----
 
-## Non-hierarchical model ----
+lm_out <- lm(data = data, ComplianceIndex ~ Date + CountryName)
 
-lm_out <- lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
+summary(lm_out)
+
+## Non-hierarchical model 2 ----
+
+lm_out <- lm(data = data, ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)
 
 summary(lm_out)
 
@@ -312,7 +315,7 @@ plot_ly(data, x = ~Date, y = ~StringencyIndex, z = ~MobilityIndex, color = ~Coun
 
 ## How does the Compliance change over time in Europe? This model has not enough independent variables ----
 
-lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (Date | CountryName))
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + (Date | CountryName))
 
 ### Looking at the results
 summary(lmer_out)
@@ -365,18 +368,6 @@ rstudioapi::viewer(table)
 
 lrtest(lm_out, lmer_out)
 
-## Warning in modelUpdate(objects[[i - 1]], objects[[i]]): original model was of
-## class "lmerMod", updated model is of class "lm"
-## Likelihood ratio test
-## 
-## Model 1: LabVote19 ~ LabVote17 + Leave16Vote + (1 | region)
-## Model 2: LabVote19 ~ LabVote17 + Leave16Vote + region - 1
-##   #Df  LogLik Df  Chisq Pr(>Chisq)    
-## 1   5 -1738.8                         
-## 2  14 -1713.8  9 50.053  1.053e-07 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
 # Communicating the Results ----
 
 ## Plot of Compliance per Country
@@ -402,6 +393,21 @@ ggplot(data = Country_slope, aes(x = country_plot, y = slope)) +
   geom_point() +
   coord_flip() + 
   theme_bw() + 
-  ylab("Compliance")  +
+  ylab("Change in Compliance per Day")  +
   xlab("Country")
+
+ggplot(data = Country_slope, aes(x = country_plot, y = slope)) + 
+  geom_point() +
+  coord_flip() + 
+  theme_bw() + 
+  ylab("Change in Compliance per Day")  +
+  xlab("Country") +
+  theme(
+    axis.title.y = element_text(color = "black", size=12, vjust = 3),
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Sans Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    plot.title = element_text(size = 11, face = "bold")) +
+  ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
 
