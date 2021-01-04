@@ -2,7 +2,7 @@
 title: "COVID-19 Policy-Compliance in Europe"
 author: "Philipp Holz"
 #date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: "26 December 2020"
+date: "05 January 2021"
 output: 
   pdf_document:
     toc: true
@@ -176,9 +176,13 @@ The COVID-19-Pandemic is an ongoing challenge for policymakers. Especially, beca
 
 To find an answer to these questions, the following analysis will assess the following hypotheses.
 
-H\textsubscript{0}: There **is no** difference in compliance with mobility-reducing policies across European countries and this policy-compliance **does not** express a trend.
+H1\textsubscript{0}: There **is no** difference in compliance with mobility-reducing policies across European countries.
 
-H\textsubscript{a}: There **is** a difference in compliance with mobility-reducing policies across European countries and this policy-compliance **does** express a trend.
+H1\textsubscript{a}: There **is** a difference in compliance with mobility-reducing policies across European countries.
+
+H2\textsubscript{0}: There **is no** linear trend in such compliance over time.
+
+H2\textsubscript{a}: There **is** a linear trend in such compliance over time.
 
 This analysis combines data from the Google COVID-19 Community Mobility Reports [@COVID19CommunityMobility2020] and data from the Oxford Policy Tracker [@haleOxfordCOVID19Government2020]. The Google Mobility Report charts "movement trends over time by geography, across different categories."[@COVID19CommunityMobility2020] For the sake of this analysis the movement trends of the categories retail and recreation, supermarkets and pharmacies, public transport and workplaces were included and averaged without weighting. The Stringency Index was obtained from the Oxford Policy Tracker and records information on "the strictness of 'lockdown style' policies that primarily restrict people's behaviour."[@haleOxfordCOVID19Government2020]
 
@@ -268,96 +272,150 @@ ggplot(data) +
 # Modelling
 ## Linear Non-Hierachical Model
 
-The following non-hierarchical model predicts the Mobility Index as the dependent variable, with the Stringency Index, Date and Country as the independent variables.
+The following non-hierarchical model predicts compliance as the dependent variable, with the Stringency Index, Date and Country as the independent variables.
 
 \begin{equation}
-{Compliance Index} = {\beta}_0 + {\beta}_1 * {Date} + {\beta}_2 * {Country} + {\beta}_3 * {Publicity} + {\beta}_4 * {Cases/100.000/14 days} + {\epsilon}
+{Compliance} = {\beta}_0 + {\beta}_1 * {Date} + {\beta}_2 * {Country} + {\epsilon}
 \end{equation}
 
-It yields the following result. Except for Date, none of the continuous variables Publicity and Cases/100.000/14 Days are statistically significant. Date is statistically significant at the 0.05 level. Its coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day.
-
-```{r Non-Hiearchical Model, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r Non-Hiearchical Model 1, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 ## Fit the model
-lm_out <- lm(data = data, ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days)
+lm_out <- lm(data = data, ComplianceIndex ~ Date + CountryName)
 
 ## Look at the results
 summary(lm_out)
 
 ## Call:
-## lm(formula = ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days, 
-##     data = data)
+## lm(formula = ComplianceIndex ~ Date + CountryName, data = ## data)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -39.271  -6.424  -0.826   6.354  42.727 
+## -52.809  -6.508  -0.297   6.226  40.292 
 ## 
 ## Coefficients:
-##                                                   Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)                                      1.430e+03  1.181e+02  12.113   <2e-16 ***
-## Date                                            -7.442e-02  6.400e-03 -11.627   <2e-16 ***
-## Publicity                                       -8.653e-03  2.192e-02  -0.395    0.693    
-## notification_rate_per_100000_population_14.days  6.592e-03  2.551e-03   2.584    0.010 *  
+##                             Estimate Std. Error t value ## Pr(>|t|)    
+## (Intercept)                1.223e+03  3.575e+01  34.211  < ## 2e-16 ***
+## Date                      -6.291e-02  1.936e-03 -32.489  < ## 2e-16 ***
+## CountryNameBelgium        -3.599e+00  8.334e-01  -4.318 ## 1.61e-05 ***
+## CountryNameDenmark        -9.119e+00  8.314e-01 -10.969  < ## 2e-16 ***
+## CountryNameFrance         -7.065e+00  8.314e-01  -8.497  < ## 2e-16 ***
+## CountryNameGermany        -1.196e+01  8.314e-01 -14.385  < ## 2e-16 ***
+## CountryNameIreland        -5.587e+00  8.341e-01  -6.698 ## 2.43e-11 ***
+## CountryNameItaly          -7.642e+00  8.348e-01  -9.154  < ## 2e-16 ***
+## CountryNameNetherlands    -5.099e+00  8.444e-01  -6.039 ## 1.70e-09 ***
+## CountryNamePoland         -6.166e+00  8.327e-01  -7.404 ## 1.63e-13 ***
+## CountryNameSpain          -4.647e+00  8.348e-01  -5.566 ## 2.79e-08 ***
+## CountryNameSweden         -1.021e+01  8.314e-01 -12.279  < ## 2e-16 ***
+## CountryNameUnited Kingdom -2.807e+00  8.314e-01  -3.376 ## 0.000742 ***
 ## ---
 ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ## 
-## Residual standard error: 10.28 on 516 degrees of freedom
-##   (3797 observations deleted due to missingness)
-## Multiple R-squared:  0.2418,	Adjusted R-squared:  0.2374 
-## F-statistic: 54.86 on 3 and 516 DF,  p-value: < 2.2e-16
+## Residual standard error: 10.32 on 3646 degrees of freedom
+##   (670 observations deleted due to missingness)
+## Multiple R-squared:  0.2791,	Adjusted R-squared:  0.2768 
+## F-statistic: 117.7 on 12 and 3646 DF,  p-value: < 2.2e-16
+```
+
+It yields the following result.
+
+| Variable                  | Coefficient | Std. Error | P-Value |
+| ------------------------- | ----------- | ---------- | ------- |
+| Date                      | -6.291e-02  | 1.936e-03  | \*\*\*  |
+| Belgium                   | -3.599e+00  | 8.334e-01  | \*\*\*  |
+| Denmark                   | -9.119e+00  | 8.314e-01  | \*\*\*  |
+| France                    | -7.065e+00  | 8.314e-01  | \*\*\*  |
+| Germany                   | -1.196e+01  | 8.314e-01  | \*\*\*  |
+| Ireland                   | -5.587e+00  | 8.341e-01  | \*\*\*  |
+| Italy                     | -7.642e+00  | 8.348e-01  | \*\*\*  |
+| Netherlands               | -5.099e+00  | 8.444e-01  | \*\*\*  |
+| Poland                    | -6.166e+00  | 8.327e-01  | \*\*\*  |
+| Spain                     | -4.647e+00  | 8.348e-01  | \*\*\*  |
+| Sweden                    | -1.021e+01  | 8.314e-01  | \*\*\*  |
+| United Kingdom            | -2.807e+00  | 8.314e-01  | \*\*\*  |
+R\textsuperscript{2} = 0.28;
+Adj. R\textsuperscript{2} = 0.28;
+Num. obs. = 520;
+∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.0
+
+The coefficients for Data and the individual Countries, when compared to Austria, are statistically significant. The coefficient for date is negative, with only little standard error. Also the coefficients for the countries are negative, signalling that Austria showed the highest level of compliance, with Germany and Sweden at the bottom of the list. We can control this relationship for the influence of public attention to the pandemic and for COVID-19 cases per 100.000 and 14 days.
+
+\begin{equation}
+{Compliance} = {\beta}_0 + {\beta}_1 * {Date} + {\beta}_2 * {Country} + {\beta}_3 * {Public Attention} + {\beta}_4 * {Cases/(100.000 * 14 days)} + {\epsilon}
+\end{equation}
+
+```{r Non-Hiearchical Model 2, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+## Fit the model
+lm_out <- lm(data = data, ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)
+
+## Look at the results
+summary(lm_out)
+
+## Call:
+## lm(formula = ComplianceIndex ~ Date + CountryName + Publicity + 
+##     notification_rate_per_100000_population_14.days, data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -36.552  -6.433  -0.435   5.822  37.089 
+## 
+## Coefficients:
+##                                                   Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                                      1.381e+03  1.155e+02  11.953  < 2e-16 ***
+## Date                                            -7.142e-02  6.264e-03 -11.401  < 2e-16 ***
+## CountryNameBelgium                              -3.211e+00  2.122e+00  -1.514 0.130771    
+## CountryNameDenmark                              -8.285e+00  2.124e+00  -3.902 0.000108 ***
+## CountryNameFrance                               -7.145e+00  2.112e+00  -3.383 0.000773 ***
+## CountryNameGermany                              -1.106e+01  2.124e+00  -5.209 2.77e-07 ***
+## CountryNameIreland                              -4.066e+00  2.133e+00  -1.906 0.057210 .  
+## CountryNameItaly                                -8.116e+00  2.165e+00  -3.748 0.000199 ***
+## CountryNameNetherlands                          -2.967e+00  2.142e+00  -1.385 0.166606    
+## CountryNamePoland                               -5.667e+00  2.169e+00  -2.613 0.009253 ** 
+## CountryNameSpain                                -4.790e+00  2.239e+00  -2.139 0.032904 *  
+## CountryNameSweden                               -9.533e+00  2.113e+00  -4.511 8.03e-06 ***
+## CountryNameUnited Kingdom                       -3.250e+00  2.126e+00  -1.529 0.126923    
+## Publicity                                       -1.085e-02  2.393e-02  -0.453 0.650518    
+## notification_rate_per_100000_population_14.days  4.710e-03  2.557e-03   1.842 0.066033 .  
+## ---
+## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## 
+## Residual standard error: 9.907 on 505 degrees of freedom
+##   (3809 observations deleted due to missingness)
+## Multiple R-squared:  0.3102,	Adjusted R-squared:  0.2911 
+## F-statistic: 16.22 on 14 and 505 DF,  p-value: < 2.2e-16
 
 ```
 
+It yields the following result. Except for Date, none of the continuous variables Public Attention and Cases per 100,000 and 14 Days are statistically significant. Date is statistically significant at the 0.05 level. Its coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day. Interestingly, some of the coefficients for individual countries are not significant anymore when controlling for public attention and COVID-19 cases. In the following, a random intercept will be included for country, in order to improve model fit.
 
-| Variable              | Coefficient | Std. Error | P-Value |
-| --------------------- | -----------: | ----------: | :-------: |
-| Date                  | −0.07       | 0.01     | ∗∗∗     |
-| Publicity             | −0.01       | 0.02     |         |
-| Cases/100,000/14 Days | 0.00        | 0.00     |         |
-| Belgium               | −3.21       | 2.12     |         |
-| Denmark               | -8.29       | 2.12       | ∗∗∗     |
-| France                | -7.15       | 2.11     | ∗∗∗     |
-| Germany               | −11.06      | 2.12     | ∗∗∗     |
-| Ireland               | −4.07       | 2.13     |         |
-| Italy                 | −8.12       | 2.17     | ∗∗∗     |
-| Netherlands           | −2.97       | 2.14     |         |
-| Poland                | −5.67       | 2.17     | ∗∗      |
-| Spain                 | −4.79       | 2.24     | ∗       |
-| Sweden                | −9.53       | 2.11     | ∗∗∗     |
-| United Kingdom        | −3.25       | 2.13     |         |
+ | Variable                      | Coefficient | Std. Error | P-Value |
+ | ----------------------------- | ----------- | ---------- | ------- |
+ | Date                          | -7.142e-02  | 6.264e-03  | \*\*\*  |
+ | Belgium                       | -3.211e+00  | 2.122e+00  |         |
+ | Denmark                       | -8.285e+00  | 2.124e+00  | \*\*\*  |
+ | France                        | -7.145e+00  | 2.112e+00  | \*\*\*  |
+ | Germany                       | -1.106e+01  | 2.124e+00  | \*\*\*  |
+ | Ireland                       | -4.066e+00  | 2.133e+00  | .       |
+ | Italy                         | -8.116e+00  | 2.165e+00  | \*\*\*  |
+ | Netherlands                   | -2.967e+00  | 2.142e+00  |         |
+ | Poland                        | -5.667e+00  | 2.169e+00  | \*\*    |
+ | Spain                         | -4.790e+00  | 2.239e+00  | \*      |
+ | Sweden                        | -9.533e+00  | 2.113e+00  | \*\*\*  |
+ | United Kingdom                | -3.250e+00  | 2.126e+00  |         |
+ | Public Attention              | -1.085e-02  | 2.393e-02  |         |
+ | Cases per 100,000 and 14 Days | 4.710e-03   | 2.557e-03  | .       |
 R\textsuperscript{2} = 0.31;
 Adj. R\textsuperscript{2} = 0.29;
 Num. obs. = 520;
 ∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
-With Country as the categorical variable, all expressions are statistically significant at the 0.05 level, with the exception of Belgium, Ireland, the Netherlands, and the United Kingdom, when compared to Austria as the reference category. The adjusted R² indicates that the model explains 29% of the observed variance.
-
 ## Linear Multi-Level Model
 
-As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria. Additionally, the following plot shows that the slopes for Compliance vs. Date by Country differ slightly.
+As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria.
 
-```{r Non-hierarchical different intercepts and slopes, message=FALSE, warning=FALSE, fig.align = "center"}
-ggplot(data = augment(lm(data = data, 
-                         ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
-       aes(x = Date, y = ComplianceIndex, color = CountryName))  +
-  geom_smooth(aes(y = .fitted), method = "lm", se = FALSE) +
-  xlab("Month") +
-  scale_x_date(breaks = date_breaks("3 months"),
-               labels = date_format("%b\n%Y")) +
-  scale_y_continuous(name = "Policy Compliance Index") +
-  theme(
-    axis.title.y = element_text(color = "black", size=12, vjust = 3),
-    axis.title.x = element_text(size=12, vjust = 0.5),
-    text=element_text(family="CMU Sans Serif"),
-    panel.background = element_rect(fill = "white"),
-    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
-    plot.title = element_text(size = 11, face = "bold")) +
-  ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
-```
-
-Thus, to better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
+To better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
 
 \begin{equation}
-{Compliance Index}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Publicity}_{ij} + {\beta}_3 * {Cases/100,000/14 days}_{ij} + {\beta}_{1j} * {Date} + {Country}_{0j} + {\epsilon}_{0ij}
+{Compliance}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Public Attention}_{ij} + {\beta}_3 * {Cases/(100,000 * 14 days)}_{ij} + {\beta}_{1j} * {Date} + {Country}_{0j} + {\epsilon}_{0ij}
 \end{equation}
 
 ```{r Hierarchical model, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
@@ -366,7 +424,7 @@ Thus, to better assess the trends of policy-compliance in Europe over time, we c
 lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (Date | CountryName))
 
 ### Looking at the results
-summary(lmer_out3)
+summary(lmer_out)
 
 ## Linear mixed model fit by REML ['lmerMod']
 ## Formula: ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  
@@ -427,15 +485,56 @@ summary(lmer_out3)
 | Residual       |           |    96.43 |      9.82 |
 Number of observations: 520, Number of groups: 12
 
-| Fixed effects         |        - |          - |       - |    -    |
-| --------------------- | --------:| ----------:| -------:|:-------:|
-|                       | Estimate | Std. Error | t-value | p-value |
-| Date                  |    -0.07 |       0.01 |  -11.51 |   ∗∗∗   |
-| Publicity             |    -0.01 |       0.02 |   -0.44 |         |
-| Cases/100,000/14 Days |     0.00 |       0.00 |    1.87 |         |
+| Fixed effects                 |        - |          - |       - |    -    |
+| ------------------------------| --------:| ----------:| -------:|:-------:|
+|                               | Estimate | Std. Error | t-value | p-value |
+| Date                          |    -0.07 |       0.01 |  -11.51 |   ∗∗∗   |
+| Public Attention              |    -0.01 |       0.02 |   -0.44 |         |
+| Cases per 100,000 and 14 Days |     0.00 |       0.00 |    1.87 |         |
 ∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
-As we can see, the coefficients of the fixed effects at level one have not changed substantially. Still, the fixed effect of Date is the only one that is statistically significant. The fact that the variance of the residual is almost as big as the variance of the random intercepts casts in doubt the explanatory value of our model. 
+As we can see, the coefficients of the fixed effects at level one have not changed substantially. Still, the fixed effect of Date is the only one that is statistically significant.
+
+The following plot shows the rate at which compliance changes per day in different European countries, according to our hierarchical model, that controls for public attention and COVID-19-cases.
+
+```{r slope of compliance-plot, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
+
+# Model
+lmer_out <- lmer(data = data, ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days +  (Date | CountryName))
+
+## Extracting out the fixed-effect slope for Date
+Date_slope <- fixef(lmer_out)['Date']
+
+## Extracting out the random-effect slopes for Country
+Country_slope <- ranef(lmer_out)$CountryName
+
+## Creating a new column for the slope
+Country_slope$slope <- Country_slope$Date + Date_slope
+
+## Using row names to create a county name column
+Country_slope$country <- rownames(Country_slope)
+
+## Ordered county-level factor based upon slope values
+Country_slope$country_plot <- factor(Country_slope$country, 
+                                   levels = Country_slope$country[order(Country_slope$slope)])
+
+## Plotting the results
+ggplot(data = Country_slope, aes(x = country_plot, y = slope)) + 
+  geom_point() +
+  coord_flip() + 
+  theme_bw() + 
+  ylab("Change in Compliance per Day")  +
+  xlab("Country") +
+  theme(
+    axis.title.y = element_text(color = "black", size=12, vjust = 3),
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Sans Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    plot.title = element_text(size = 11, face = "bold")) +
+  ggtitle("Rate of Change in Compliance in Europe")
+```
+
 
 ## Model comparison
 
@@ -445,33 +544,33 @@ lrtest(lm_out, lmer_out)
 
 ## Likelihood ratio test
 ## 
-## Model 1: ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days
+## Model 1: ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days
 ## Model 2: ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + 
 ##     (Date | CountryName)
-##   #Df  LogLik Df  Chisq Pr(>Chisq)   
-## 1   5 -1947.3                        
-## 2   8 -1954.3  3 13.991   0.002917 **
+##   #Df  LogLik Df Chisq Pr(>Chisq)    
+## 1  16 -1922.8                        
+## 2   8 -1954.3 -8 63.15  1.119e-10 ***
 ## ---
 ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 ```
 
 Finally, to compare our hierarchical model-fit with the model-fit of our non-hierarchical model, we can compute a likelihood ratio test. This yields the following result.
 
-`Model 1: ComplianceIndex ~ Date + Publicity + Date + notification_rate_per_100000_population_14.days`
+`Model 1: ComplianceIndex ~ Date + Country + Public Attention + Cases per 100,000 and 14 Days`
 
-`Model 2: ComplianceIndex ~ Date + Publicity + notification_rate_per_100000_population_14.days + (Date | CountryName)`
+`Model 2: ComplianceIndex ~ Date + Public Attention + Cases per 100,000 and 14 Days + (Date | Country)`
 
-| Model | Df  | LogLik  | Chisq  | Pr(>Chisq)  |
-| ----- | --- | ------- | ------ | ----------- |
-| 1     | 5   | -1947.3 |        |             |
-| 2     | 8   | -1954.3 | 13.991 | 0.002917 ** |
+| Model | Df  | LogLik  | Chisq  | P-Value       |
+| ----- | --- | ------- | ------ | --------------|
+| 1     | 16  | -1922.8 |        |               |
+| 2     | 8   | -1954.3 | 63.15  | 1.119e-10 *** |
 ∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
 As we can see, the improvement of our hierarchical model over our non-hierarchical model is statistically significant at the 0.05 level.
 
 # Conclusion
 
-This analysis has shown that, interestingly, levels of compliance with mobility-reducing COVID-19-policies differ across selected European countries and that policy-compliance expresses an alarming, negative trend. We were able to show these findings using both a non-hierarchical and a hierarchical model. Nevertheless, this analysis has also shown that a large amount of variance in policy compliance remains unexplained by our models, which might be due to their linear character. Further attempts will have to be made in that regard.
+This analysis has shown that, interestingly, levels of compliance with mobility-reducing COVID-19-policies differ across selected European countries and that policy-compliance expresses an alarming, negative trend. Additionally, we were able to show how the *rate* at which policy-compliance decreases differs across European countries.
 
 # References
 
