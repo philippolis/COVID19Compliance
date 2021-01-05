@@ -410,4 +410,3 @@ ggplot(data = Country_slope, aes(x = country_plot, y = slope)) +
     panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
     plot.title = element_text(size = 11, face = "bold")) +
   ggtitle("Model Predictions for Policy Compliance in Europe Across Time")
-
