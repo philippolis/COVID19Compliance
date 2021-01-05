@@ -385,7 +385,7 @@ summary(lm_out)
 
 ```
 
-It yields the following result. Except for Date, none of the continuous variables Public Attention and Cases per 100,000 and 14 Days are statistically significant. Date is statistically significant at the 0.05 level. Its coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day. Interestingly, some of the coefficients for individual countries are not significant anymore when controlling for public attention and COVID-19 cases. In the following, a random intercept will be included for country, in order to improve model fit.
+It yields the following result. Except for Date, none of the continuous variables Public Attention and Cases per 100,000 and 14 Days are statistically significant. Date is statistically significant at the 0.05 level. Its coefficient shows that when holding Publicity, Cases and Country constant, Compliance decreases on average by 0.07 points each day. Interestingly, some of the coefficients for individual countries are not significant anymore when controlling for public attention and COVID-19 cases.
 
  | Variable                      | Coefficient | Std. Error | P-Value |
  | ----------------------------- | ----------- | ---------- | ------- |
@@ -409,14 +409,35 @@ Num. obs. = 520;
 ∗∗∗ p < 0.001; ∗∗ p < 0.01; ∗ p < 0.05
 
 ## Linear Multi-Level Model
+The following plot visualizes the different intercepts, predicted by the non-hierarchical model. Along with the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria. In addition, we can see that despite the relationships between Date and Compliance being negative for all countries, there are different slopes. 
 
-As we can see in the regression output of our non-hierarchical model, the fixed effects estimated for the different expressions of our country variable show substantial differences, with Germany showing more than 10 points less policy-compliance than our reference country Austria.
+```{r Plot different intercepts and slopes, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"}
+### Non-hierarchical model different intercepts and different slopes
+ggplot(data = augment(lm(data = data, 
+                         ComplianceIndex ~ Date + CountryName + Publicity + notification_rate_per_100000_population_14.days)),
+       aes(x = Date, y = ComplianceIndex, color = CountryName))  +
+  geom_smooth(aes(y = .fitted), method = "lm", se = FALSE) +
+  xlab("Month") +
+  scale_x_date(breaks = date_breaks("3 months"),
+               labels = date_format("%b\n%Y")) +
+  scale_y_continuous(name = "Policy Compliance Index") +
+  theme(
+    axis.title.y = element_text(color = "black", size=12, vjust = 3),
+    axis.title.x = element_text(size=12, vjust = 0.5),
+    text=element_text(family="CMU Sans Serif"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "grey", linetype = "dotted"),
+    strip.background = element_rect(fill="white"),
+    plot.title = element_text(size = 11, face = "bold")
+  ) +
+  ggtitle(label = "Model Predictions for Policy Compliance in Europe Across Time",
+          subtitle = "Non-hierarchical Model")
 
-To better assess the trends of policy-compliance in Europe over time, we can create a hierarchical model, allowing both random intercepts for the subgroups of Country as our grouping variable and random slopes along the Date variable.
+```
 
-\begin{equation}
-{Compliance}_{ij} = {\beta}_0 + {\beta}_1 * {Date}_{ij} + {\beta}_2 * {Public Attention}_{ij} + {\beta}_3 * {Cases/(100,000 * 14 days)}_{ij} + {\beta}_{1j} * {Date} + {Country}_{0j} + {\epsilon}_{0ij}
-\end{equation}
+Thus, in the following, a random intercept will be included for country, as well as a random slope for Date, in order to estimate the rate of change in policy compliance in different countries. This yields the following formula in lme4-syntax with the following results.
+
+`ComplianceIndex ~ Date + Public Attention + Cases per 100,000 and 14 Days + (Date | Country)`
 
 ```{r Hierarchical model, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 ## How does the Compliance change over time in Europe? This model has not enough independent variables ----
